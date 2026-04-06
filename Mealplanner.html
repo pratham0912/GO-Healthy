@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Meal Planner — Go Healthy</title>
+    <meta name="description"
+        content="AI-powered meal planning with location-based diet intelligence, BMR/TDEE calculator, and personalized weekly plans.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="demo.css">
+</head>
+
+<body>
+
+
+
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav py-3">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3">
+                <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="index.html">
+                    <i class="bi bi-heart-pulse-fill text-neon fs-4"></i>
+                    <span class="fw-bold fs-4">Go<span class="brand-accent">Healthy</span></span>
+                </a>
+                <button class="btn btn-sm btn-outline-neon d-flex align-items-center justify-content-center"
+                    onclick="API.toggleTheme()" id="themeToggleBtn"
+                    style="width: 34px; height: 34px; border-radius: 50%; padding: 0;" title="Toggle Theme">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+            </div>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list fs-2" style="color: var(--text-primary)"></i>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center gap-2">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="recipes.html">Recipes</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="Mealplanner.html">Meal Planner</a></li>
+                    <li class="nav-item"><a class="nav-link" href="nutriai.html">Nutri AI</a></li>
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li class="nav-item ms-2"><a href="sign_in.html" class="btn btn-neon px-4 py-2">Sign In</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Bottom Nav -->
+    <div class="mobile-bottom-nav">
+        <a href="index.html" class="nav-item"><i class="bi bi-house-fill"></i>Home</a>
+        <a href="recipes.html" class="nav-item"><i class="bi bi-book"></i>Recipes</a>
+        <a href="Mealplanner.html" class="nav-item active"><i class="bi bi-calendar-check"></i>Planner</a>
+        <a href="nutriai.html" class="nav-item"><i class="bi bi-robot"></i>AI</a>
+        <a href="dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i>Dashboard</a>
+    </div>
+
+    <!-- ━━━ HEADER ━━━ -->
+    <section style="padding-top: 120px; padding-bottom: 10px;">
+        <div class="container text-center">
+            <span class="badge-neon mb-3 d-inline-block reveal"><i class="bi bi-cpu me-1"></i> AI-Powered</span>
+            <h1 class="display-4 fw-bold mb-3 reveal delay-1">Smart Meal <span class="text-gradient">Planner</span></h1>
+            <p class="lead max-w-600 mx-auto mb-4 reveal delay-2" style="color: var(--text-secondary);">
+                Your personal AI nutritionist — calculates macros, builds plans, and adapts to your region.
+            </p>
+            <!-- Progress Steps -->
+            <div class="d-flex justify-content-center gap-3 mb-5 reveal delay-3" id="progressBar">
+                <div class="step-indicator active" data-step="0"><span>1</span><small>Location</small></div>
+                <div class="step-line-h"></div>
+                <div class="step-indicator" data-step="1"><span>2</span><small>Goal</small></div>
+                <div class="step-line-h"></div>
+                <div class="step-indicator" data-step="2"><span>3</span><small>Stats</small></div>
+                <div class="step-line-h"></div>
+                <div class="step-indicator" data-step="3"><span>4</span><small>Results</small></div>
+                <div class="step-line-h"></div>
+                <div class="step-indicator" data-step="4"><span>5</span><small>Plan</small></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ━━━ WIZARD STEPS ━━━ -->
+    <section class="container pb-5">
+
+        <!-- STEP 0: Location Detection -->
+        <div class="wizard-step active" id="step0">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="text-center mb-4 reveal active">
+                        <h3 class="fw-bold mb-2">Where Are You?</h3>
+                        <p style="color: var(--text-secondary);">We customize your diet based on local cuisine, seasonal
+                            produce, and grocery availability.</p>
+                    </div>
+
+                    <div class="glass-card p-4 mb-4 reveal active">
+                        <button class="location-detect-btn" id="detectBtn" onclick="detectMyLocation()">
+                            <div class="detect-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                            <div class="text-start">
+                                <div class="fw-bold" style="color: var(--text-primary);">Auto-Detect My Location</div>
+                                <small style="color: var(--text-muted);">Uses browser geolocation + IP fallback</small>
+                            </div>
+                            <i class="bi bi-arrow-right ms-auto" style="color: var(--neon-green);"></i>
+                        </button>
+                    </div>
+
+                    <div id="locationResult" style="display: none;"></div>
+
+                    <div class="glass-card p-4 reveal active">
+                        <div class="overline mb-3">Or Enter Manually</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Country</label>
+                                <select class="form-control-dark w-100" id="manualCountry">
+                                    <option value="">Select country...</option>
+                                    <option value="India">India</option>
+                                    <option value="United States">United States</option>
+                                    <option value="United Kingdom">United Kingdom</option>
+                                    <option value="Italy">Italy (Mediterranean)</option>
+                                    <option value="Spain">Spain (Mediterranean)</option>
+                                    <option value="Canada">Canada</option>
+                                    <option value="Australia">Australia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-dark">City</label>
+                                <input type="text" class="form-control-dark w-100" id="manualCity"
+                                    placeholder="e.g. Pune, Mumbai, New York">
+                            </div>
+                        </div>
+                        <button class="btn btn-ghost mt-3" onclick="setManualLocation()">
+                            <i class="bi bi-check2 me-1"></i> Use This Location
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button class="btn btn-ghost" onclick="skipLocation()">Skip → Use Default</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 1: Goal Selection -->
+        <div class="wizard-step" id="step1">
+            <div class="text-center mb-4 reveal active">
+                <h3 class="fw-bold mb-2">What's Your Goal?</h3>
+                <p style="color: var(--text-secondary);">Select your primary fitness goal to customize your macro split.
+                </p>
+            </div>
+            <div class="row g-4 justify-content-center" id="goalCards">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="goal-card" onclick="selectGoal(this, 'weightloss')">
+                        <div class="goal-icon"><i class="bi bi-fire"></i></div>
+                        <div class="goal-title">Weight Loss</div>
+                        <small style="color: var(--text-muted);">Calorie deficit</small>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="goal-card" onclick="selectGoal(this, 'bulking')">
+                        <div class="goal-icon"><i class="bi bi-trophy"></i></div>
+                        <div class="goal-title">Bulking</div>
+                        <small style="color: var(--text-muted);">Calorie surplus</small>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="goal-card" onclick="selectGoal(this, 'maintenance')">
+                        <div class="goal-icon"><i class="bi bi-balance-scale"></i></div>
+                        <div class="goal-title">Maintenance</div>
+                        <small style="color: var(--text-muted);">Balance macros</small>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="goal-card" onclick="selectGoal(this, 'muscle')">
+                        <div class="goal-icon"><i class="bi bi-activity"></i></div>
+                        <div class="goal-title">Muscle Gain</div>
+                        <small style="color: var(--text-muted);">High protein</small>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-ghost me-2" onclick="goToStep(0)"><i class="bi bi-arrow-left me-1"></i>
+                    Back</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: User Stats -->
+        <div class="wizard-step" id="step2">
+            <div class="row justify-content-center">
+                <div class="col-lg-7">
+                    <div class="text-center mb-4 reveal active">
+                        <h3 class="fw-bold mb-2">Your Stats</h3>
+                        <p style="color: var(--text-secondary);">Enter your details for precise calorie and macro
+                            calculations.</p>
+                    </div>
+                    <div class="glass-card p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Gender</label>
+                                <select class="form-control-dark w-100" id="gender">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Age</label>
+                                <input type="number" class="form-control-dark w-100" id="age" placeholder="25"
+                                    value="25">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Height (cm)</label>
+                                <input type="number" class="form-control-dark w-100" id="height" placeholder="170"
+                                    value="170">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Weight (kg)</label>
+                                <input type="number" class="form-control-dark w-100" id="weight" placeholder="70"
+                                    value="70">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Activity Level</label>
+                                <select class="form-control-dark w-100" id="activity">
+                                    <option value="1.2">Sedentary (desk job)</option>
+                                    <option value="1.375">Lightly Active (1-3 days/week)</option>
+                                    <option value="1.55" selected>Moderately Active (3-5 days)</option>
+                                    <option value="1.725">Very Active (6-7 days)</option>
+                                    <option value="1.9">Athlete (intense daily)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-dark">Diet Preference</label>
+                                <select class="form-control-dark w-100" id="dietPref">
+                                    <option value="any">No Preference</option>
+                                    <option value="vegetarian">Vegetarian</option>
+                                    <option value="vegan">Vegan</option>
+                                    <option value="keto">Keto</option>
+                                    <option value="highprotein">High Protein</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button class="btn btn-ghost me-2" onclick="goToStep(1)"><i
+                                    class="bi bi-arrow-left me-1"></i> Back</button>
+                            <button class="btn btn-neon" onclick="calculateAndShowResults()">
+                                <i class="bi bi-calculator me-1"></i> Calculate My Plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Results -->
+        <div class="wizard-step" id="step3">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="text-center mb-4 reveal active">
+                        <h3 class="fw-bold mb-2">Your Nutrition Profile</h3>
+                        <p style="color: var(--text-secondary);">Calculated using the Mifflin-St Jeor equation tailored
+                            to your body.</p>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <!-- Calorie Ring -->
+                        <div class="col-md-5">
+                            <div class="glass-card p-4 text-center h-100">
+                                <div class="overline mb-3">Daily Target</div>
+                                <div class="position-relative d-inline-block mb-3">
+                                    <svg width="180" height="180" class="progress-ring">
+                                        <circle class="ring-bg" cx="90" cy="90" r="78" stroke-width="10"></circle>
+                                        <circle class="ring-fill" id="calorieRing" cx="90" cy="90" r="78"
+                                            stroke-width="10" stroke="url(#neonGrad)" stroke-dasharray="490"
+                                            stroke-dashoffset="490"></circle>
+                                        <defs>
+                                            <linearGradient id="neonGrad">
+                                                <stop offset="0%" stop-color="#00ff87" />
+                                                <stop offset="100%" stop-color="#00d4ff" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div
+                                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                        <div class="stat-number text-gradient" id="calorieTarget"
+                                            style="font-size: 2.2rem;">0</div>
+                                        <small style="color: var(--text-muted);">kcal/day</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-around text-center mt-2">
+                                    <div><small class="overline" style="font-size: 0.55rem;">BMR</small>
+                                        <div class="fw-bold" id="bmrVal" style="color: var(--text-primary);">0</div>
+                                    </div>
+                                    <div><small class="overline" style="font-size: 0.55rem;">TDEE</small>
+                                        <div class="fw-bold" id="tdeeVal" style="color: var(--text-primary);">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Macros -->
+                        <div class="col-md-7">
+                            <div class="glass-card p-4 h-100">
+                                <div class="overline mb-3">Macro Split</div>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span style="color: var(--text-secondary);">Protein</span>
+                                        <span class="fw-bold" id="proteinVal"
+                                            style="color: var(--neon-green);">0g</span>
+                                    </div>
+                                    <div class="mini-bar">
+                                        <div class="fill" id="proteinBar"
+                                            style="width: 0%; background: var(--neon-green);"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span style="color: var(--text-secondary);">Carbs</span>
+                                        <span class="fw-bold" id="carbsVal"
+                                            style="color: var(--electric-cyan);">0g</span>
+                                    </div>
+                                    <div class="mini-bar">
+                                        <div class="fill" id="carbsBar"
+                                            style="width: 0%; background: var(--electric-cyan);"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span style="color: var(--text-secondary);">Fats</span>
+                                        <span class="fw-bold" id="fatsVal" style="color: var(--soft-orange);">0g</span>
+                                    </div>
+                                    <div class="mini-bar">
+                                        <div class="fill" id="fatsBar"
+                                            style="width: 0%; background: var(--soft-orange);"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Location-Based Tip -->
+                                <div id="locationTip" class="mt-3 p-3"
+                                    style="background: var(--neon-green-dim); border-radius: var(--radius-sm); display: none;">
+                                    <small style="color: var(--neon-green);"><i class="bi bi-lightbulb me-1"></i><span
+                                            id="tipText"></span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seasonal Produce -->
+                    <div id="seasonalSection" class="glass-card p-4 mb-4" style="display: none;">
+                        <div class="overline mb-3">In Season Near You</div>
+                        <div class="seasonal-grid" id="seasonalGrid"></div>
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-ghost me-2" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i>
+                            Back</button>
+                        <button class="btn btn-outline-neon me-2" onclick="setDashboardTarget()" id="setTargetBtn">
+                            <i class="bi bi-bullseye me-1"></i> Set Dashboard Target
+                        </button>
+                        <button class="btn btn-neon" onclick="generateWeeklyPlan()">
+                            <i class="bi bi-calendar-week me-1"></i> Generate Weekly Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Weekly Plan + Grocery -->
+        <div class="wizard-step" id="step4">
+            <div class="text-center mb-4 reveal active">
+                <h3 class="fw-bold mb-2">Your Weekly Meal Plan</h3>
+                <p style="color: var(--text-secondary);" id="planSubtitle">Auto-generated based on your goals and
+                    location.</p>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                <button class="btn btn-pdf" onclick="downloadPlanPDF()">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
+                </button>
+                <button class="btn btn-ghost" onclick="goToStep(3)">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Results
+                </button>
+                <button class="btn btn-neon" onclick="generateWeeklyPlan()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Regenerate
+                </button>
+            </div>
+
+            <!-- Meal Plan Grid -->
+            <div id="mealPlanContent">
+                <div class="row g-3" id="planGrid"></div>
+            </div>
+
+            <!-- Grocery List -->
+            <div class="mt-5" id="grocerySection"></div>
+        </div>
+
+    </section>
+
+    <style>
+        .wizard-step {
+            display: none;
+        }
+
+        .wizard-step.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .step-indicator span {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator.active span {
+            background: var(--neon-green);
+            border-color: var(--neon-green);
+            color: var(--bg-primary);
+            box-shadow: 0 0 20px var(--neon-green-glow);
+        }
+
+        .step-indicator.done span {
+            background: var(--neon-green-dim);
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .step-indicator small {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .step-indicator.active small {
+            color: var(--neon-green);
+        }
+
+        .step-line-h {
+            width: 40px;
+            height: 2px;
+            background: var(--glass-border);
+            align-self: center;
+            margin-top: -16px;
+        }
+    </style>
+
+    <footer class="footer-dark" id="mainFooter"></footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="location.js"></script>
+    <script src="grocery.js"></script>
+    <script src="shared.js"></script>
+    <script src="api-client.js"></script>
+
+    <script>
+        let selectedGoal = '';
+        let userLocation = null;
+        let calculatedCalories = 0;
+        let calculatedMacros = {};
+        let currentPlanMeals = [];
+
+        /* ——— Step Navigation ——— */
+        function goToStep(n) {
+            document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + n).classList.add('active');
+            document.querySelectorAll('.step-indicator').forEach((ind, i) => {
+                ind.classList.remove('active', 'done');
+                if (i === n) ind.classList.add('active');
+                else if (i < n) ind.classList.add('done');
+            });
+            window.scrollTo({ top: 200, behavior: 'smooth' });
+        }
+
+        /* ——— Step 0: Location ——— */
+        async function detectMyLocation() {
+            const btn = document.getElementById('detectBtn');
+            btn.innerHTML = `<div class="detect-icon"><div class="spinner-border spinner-border-sm" style="color: var(--neon-green);"></div></div>
+                <div class="text-start"><div class="fw-bold" style="color: var(--text-primary);">Detecting...</div><small style="color: var(--text-muted);">Please allow location access</small></div>`;
+
+            try {
+                const loc = await GoLocation.detect();
+                userLocation = loc;
+                showLocationResult(loc);
+            } catch (e) {
+                window.showToast?.('Could not detect location. Please enter manually.', 'warning');
+                btn.innerHTML = `<div class="detect-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="text-start"><div class="fw-bold" style="color: var(--text-primary);">Try Again</div><small style="color: var(--text-muted);">Detection failed</small></div>`;
+            }
+        }
+
+        function showLocationResult(loc) {
+            const resultDiv = document.getElementById('locationResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = GoLocation.renderLocationCard(loc);
+
+            // Auto-advance after a moment
+            setTimeout(() => {
+                window.showToast?.(`Location set to ${loc.city}, ${loc.country}`, 'success');
+                goToStep(1);
+            }, 1500);
+        }
+
+        function setManualLocation() {
+            const country = document.getElementById('manualCountry').value;
+            const city = document.getElementById('manualCity').value;
+            if (!country) { window.showToast?.('Please select a country', 'warning'); return; }
+            userLocation = { city: city || 'Unknown', state: '', country, climate: 'temperate', currency: '' };
+            window.showToast?.(`Location set to ${city || country}`, 'success');
+            goToStep(1);
+        }
+
+        function skipLocation() {
+            userLocation = { city: 'Default', country: 'default', climate: 'temperate' };
+            goToStep(1);
+        }
+
+        /* ——— Step 1: Goal ——— */
+        function selectGoal(el, goal) {
+            selectedGoal = goal;
+            document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            setTimeout(() => goToStep(2), 300);
+        }
+
+        /* ——— Step 2→3: Calculate ——— */
+        function calculateAndShowResults() {
+            const gender = document.getElementById('gender').value;
+            const age = parseInt(document.getElementById('age').value) || 25;
+            const height = parseInt(document.getElementById('height').value) || 170;
+            const weight = parseInt(document.getElementById('weight').value) || 70;
+            const activity = parseFloat(document.getElementById('activity').value) || 1.55;
+            const dietPref = document.getElementById('dietPref').value;
+
+            // Mifflin-St Jeor BMR
+            let bmr;
+            if (gender === 'male') {
+                bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            } else {
+                bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+            }
+
+            const tdee = Math.round(bmr * activity);
+
+            // Step 1: Adjust calories based on goal
+            let calories;
+            switch (selectedGoal) {
+                case 'weightloss': calories = Math.round(tdee * 0.80); break;  // 20% deficit
+                case 'bulking': calories = Math.round(tdee * 1.15); break;  // 15% surplus
+                case 'muscle': calories = Math.round(tdee * 1.10); break;  // 10% surplus
+                default: calories = tdee;                            // maintenance
+            }
+            calculatedCalories = calories;
+
+            // Step 2 & 3: Calculate Macros (Smart Compromise: Weight-based Protein)
+            let proteinPerKg;
+            switch (selectedGoal) {
+                case 'weightloss': proteinPerKg = 1.5; break;
+                case 'muscle': proteinPerKg = 1.6; break;
+                case 'bulking': proteinPerKg = 1.4; break;
+                default: proteinPerKg = 1.1;
+            }
+
+            // Diet overrides for protein
+            if (dietPref === 'highprotein') proteinPerKg = 2.0;
+            if (dietPref === 'vegan' || dietPref === 'vegetarian') proteinPerKg = 1.2;
+
+            let proteinG = Math.round(weight * proteinPerKg);
+            let fatsG = Math.round(weight * 0.7);
+
+            // Diet overrides for fats/carbs
+            if (dietPref === 'keto') {
+                fatsG = Math.round((calories - (proteinG * 4 + 100)) / 9); // keto relies heavily on fat for remaining cals
+            }
+
+            let remainingCalories = calories - (proteinG * 4 + fatsG * 9);
+            let carbsG = Math.max(0, Math.round(remainingCalories / 4));
+
+            if (dietPref === 'keto') {
+                // Hard carb cap for keto
+                carbsG = Math.min(carbsG, 25);
+            }
+
+            calculatedMacros = { protein: proteinG, carbs: carbsG, fats: fatsG };
+
+            // Calculate percentages for the UI bars
+            const actualTotalCalories = (proteinG * 4) + (carbsG * 4) + (fatsG * 9);
+            const proteinPct = actualTotalCalories ? ((proteinG * 4) / actualTotalCalories) : 0;
+            const carbsPct = actualTotalCalories ? ((carbsG * 4) / actualTotalCalories) : 0;
+            const fatsPct = actualTotalCalories ? ((fatsG * 9) / actualTotalCalories) : 0;
+
+            // Update UI
+            document.getElementById('bmrVal').textContent = Math.round(bmr);
+            document.getElementById('tdeeVal').textContent = tdee;
+            document.getElementById('calorieTarget').textContent = calories;
+            document.getElementById('proteinVal').textContent = proteinG + 'g';
+            document.getElementById('carbsVal').textContent = carbsG + 'g';
+            document.getElementById('fatsVal').textContent = fatsG + 'g';
+
+            // Animate ring
+            const ring = document.getElementById('calorieRing');
+            const pct = Math.min(calories / 3500, 1);
+            setTimeout(() => {
+                ring.style.strokeDashoffset = 490 - (490 * pct);
+                document.getElementById('proteinBar').style.width = (proteinPct * 100) + '%';
+                document.getElementById('carbsBar').style.width = (carbsPct * 100) + '%';
+                document.getElementById('fatsBar').style.width = (fatsPct * 100) + '%';
+            }, 200);
+
+            // Location-based tip
+            if (userLocation && userLocation.country !== 'default') {
+                const foods = GoLocation.getRegionalFoods(userLocation.country);
+                const tipEl = document.getElementById('locationTip');
+                tipEl.style.display = 'block';
+                document.getElementById('tipText').textContent = foods.dietTip;
+
+                // Seasonal produce
+                const seasonal = GoLocation.getSeasonalProduce(userLocation.country);
+                const grid = document.getElementById('seasonalGrid');
+                grid.innerHTML = `
+                    <div class="seasonal-card">
+                        <div class="seasonal-title" style="color: var(--soft-orange);">Fruits</div>
+                        ${seasonal.fruits.map(f => `<span class="seasonal-tag" style="background: var(--soft-orange-dim); color: var(--soft-orange);">${f}</span>`).join('')}
+                    </div>
+                    <div class="seasonal-card">
+                        <div class="seasonal-title" style="color: var(--neon-green);">Vegetables</div>
+                        ${seasonal.vegs.map(v => `<span class="seasonal-tag" style="background: var(--neon-green-dim); color: var(--neon-green);">${v}</span>`).join('')}
+                    </div>
+                `;
+                document.getElementById('seasonalSection').style.display = 'block';
+            }
+
+            goToStep(3);
+        }
+
+        /* ——— Sync Target ——— */
+        function setDashboardTarget() {
+            if (!API.isLoggedIn()) {
+                window.showToast?.('Sign in to save your target', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('setTargetBtn');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+            btn.disabled = true;
+
+            const dietMapping = {
+                'any': 'none', 'vegetarian': 'vegetarian', 'vegan': 'vegan',
+                'keto': 'keto', 'highprotein': 'balanced',
+            };
+            const goalMapping = {
+                'weightloss': 'lose_weight', 'bulking': 'build_muscle',
+                'muscle': 'build_muscle', 'maintenance': 'maintain',
+            };
+
+            const gender = document.getElementById('gender').value;
+            const age = parseInt(document.getElementById('age').value) || 25;
+            const height = parseInt(document.getElementById('height').value) || 170;
+            const weight = parseInt(document.getElementById('weight').value) || 70;
+            const dietPref = document.getElementById('dietPref').value;
+
+            Promise.all([
+                API.updateHealthProfile({
+                    age: age,
+                    height: height,
+                    weight: weight,
+                    gender: gender,
+                    goal: goalMapping[selectedGoal] || 'maintain',
+                    dietType: dietMapping[dietPref] || 'none',
+                    dailyCalorieTarget: calculatedCalories,
+                }),
+                API.updatePreferences({ calorieTarget: calculatedCalories }),
+            ]).then(() => {
+                btn.innerHTML = '<i class="bi bi-check2"></i> Target Saved';
+                btn.classList.replace('btn-outline-neon', 'btn-neon');
+                window.showToast?.(`Calorie target set to ${calculatedCalories} kcal`, 'success');
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.classList.replace('btn-neon', 'btn-outline-neon');
+                    btn.disabled = false;
+                }, 3000);
+            }).catch(err => {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+                window.showToast?.('Failed to set target', 'error');
+            });
+        }
+
+        /* ——— Step 4: Generate Weekly Plan ——— */
+        async function generateWeeklyPlan() {
+            goToStep(4);
+            const grid = document.getElementById('planGrid');
+            grid.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border" style="color: var(--neon-green);"></div><p class="mt-3" style="color: var(--text-muted);">Generating your personalized plan...</p></div>`;
+
+            const country = userLocation?.country || 'default';
+            const dietPref = document.getElementById('dietPref').value;
+            const regionalPlan = GoLocation.getLocationMealPlan(country, selectedGoal, dietPref);
+
+            const dietLabels = { any: '', vegetarian: 'Vegetarian', vegan: 'Vegan', keto: 'Keto', highprotein: 'High Protein' };
+            const dietLabel = dietLabels[dietPref] || '';
+            document.getElementById('planSubtitle').textContent = `Customized for ${regionalPlan.cuisine} cuisine${dietLabel ? ' · ' + dietLabel + ' diet' : ''} · ${calculatedCalories} kcal/day`;
+
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+            try {
+                // Fetch some recipes from API to mix with regional suggestions
+                const resp = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=');
+                const data = await resp.json();
+                const apiMeals = data.meals || [];
+
+                grid.innerHTML = '';
+                currentPlanMeals = [];
+
+                days.forEach((day, idx) => {
+                    const breakfast = regionalPlan.breakfast[idx % regionalPlan.breakfast.length];
+                    const lunch = regionalPlan.lunch[idx % regionalPlan.lunch.length];
+                    const dinner = regionalPlan.dinner[idx % regionalPlan.dinner.length];
+                    const snack = regionalPlan.snacks[idx % regionalPlan.snacks.length];
+
+                    currentPlanMeals.push(breakfast, lunch, dinner);
+
+                    const apiMeal = apiMeals[idx % apiMeals.length];
+                    const thumb = apiMeal ? apiMeal.strMealThumb + '/preview' : '';
+
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6 col-lg-4';
+                    col.innerHTML = `
+                        <div class="planner-day">
+                            <div class="day-title">${day}</div>
+                            <div class="meal-slot">
+                                <div class="meal-slot-label">Breakfast</div>
+                                <div style="color: var(--text-primary); font-size: 0.9rem;">${breakfast}</div>
+                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.25)} kcal</small>
+                            </div>
+                            <div class="meal-slot">
+                                <div class="meal-slot-label">Lunch</div>
+                                <div style="color: var(--text-primary); font-size: 0.9rem;">${lunch}</div>
+                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.35)} kcal</small>
+                            </div>
+                            <div class="meal-slot">
+                                <div class="meal-slot-label">Dinner</div>
+                                <div style="color: var(--text-primary); font-size: 0.9rem;">${dinner}</div>
+                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.30)} kcal</small>
+                            </div>
+                            <div class="meal-slot">
+                                <div class="meal-slot-label">Snack</div>
+                                <div style="color: var(--text-primary); font-size: 0.9rem;">${snack}</div>
+                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.10)} kcal</small>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(col);
+                });
+
+                // Generate Grocery List
+                const groceryGrouped = GoGrocery.generateFromMeals(currentPlanMeals);
+                const allIngredients = Object.values(groceryGrouped).flat();
+                const costInfo = GoGrocery.estimateCost(allIngredients, country);
+                document.getElementById('grocerySection').innerHTML = GoGrocery.renderGroceryList(groceryGrouped, costInfo);
+
+                if (window.reinitMagnetic) window.reinitMagnetic();
+                window.showToast?.('Weekly plan generated!', 'success');
+
+            } catch (e) {
+                console.error(e);
+                grid.innerHTML = '<div class="col-12 text-center" style="color: var(--text-muted);">Could not fetch recipes. Using regional suggestions only.</div>';
+            }
+        }
+
+        /* ——— PDF Download ——— */
+        function downloadPlanPDF() {
+            const content = document.getElementById('mealPlanContent');
+            if (content && window.generatePDF) {
+                window.generatePDF(content, 'GoHealthy_Meal_Plan.pdf');
+            }
+        }
+
+        // Start at Step 0
+        goToStep(0);
+    </script>
+
+</body>
+
+</html>

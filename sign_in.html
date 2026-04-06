@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — Go Healthy</title>
+    <meta name="description"
+        content="Sign in to Go Healthy for personalized meal plans, nutrition tracking, and AI-powered diet advice.">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="demo.css">
+
+    <!-- Google Identity Services (loaded synchronously to avoid blank popup) -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <style>
+        .signin-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .signin-container {
+            max-width: 440px;
+            width: 100%;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .social-btn:hover {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 135, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--neon-green-glow);
+        }
+
+        .social-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider-text {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .divider-text::before,
+        .divider-text::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        .divider-text span {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .password-toggle:hover {
+            color: var(--neon-green);
+        }
+
+        .form-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+
+        .form-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-tab.active {
+            background: var(--neon-green);
+            color: var(--bg-primary);
+        }
+
+        .auth-error {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid rgba(255, 82, 82, 0.3);
+            color: #ff5252;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
+        .auth-loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .auth-loading.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="signin-page">
+        <div class="signin-container">
+
+            <!-- Logo -->
+            <div class="mb-5 d-flex align-items-center justify-content-center gap-4">
+                <a href="index.html" class="text-decoration-none text-center">
+                    <i class="bi bi-heart-pulse-fill text-neon fs-1 d-block mb-2"></i>
+                    <span class="fw-bold fs-3" style="color: var(--text-primary);">Go<span
+                            class="brand-accent">Healthy</span></span>
+                </a>
+                <button class="btn btn-sm btn-outline-neon d-flex align-items-center justify-content-center" onclick="API.toggleTheme()" id="themeToggleBtn" style="width: 44px; height: 44px; border-radius: 50%; padding: 0;" title="Toggle Theme">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+            </div>
+
+            <!-- Sign In / Sign Up Card -->
+            <div class="glass-card p-4 p-md-5">
+
+                <!-- Tabs: Sign In / Sign Up -->
+                <div class="form-tabs">
+                    <button class="form-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+                    <button class="form-tab" id="tabSignUp" onclick="switchTab('signup')">Sign Up</button>
+                </div>
+
+                <!-- Error message area -->
+                <div class="auth-error" id="authError"></div>
+
+                <!-- Loading -->
+                <div class="auth-loading" id="authLoading">
+                    <div class="spinner-border spinner-border-sm" style="color: var(--neon-green);" role="status"></div>
+                    <span class="ms-2" style="color: var(--text-muted);">Please wait...</span>
+                </div>
+
+                <!-- Google Sign-In (Rendered via Data Attributes) -->
+                <div class="d-flex justify-content-center mb-1 w-100">
+                    <div id="g_id_onload"
+                        data-client_id="361189653139-st7260vl9mq7iu8nsd4jsd5p6cd3ufl7.apps.googleusercontent.com"
+                        data-context="use"
+                        data-ux_mode="popup"
+                        data-callback="handleGoogleCallback"
+                        data-auto_prompt="false">
+                    </div>
+
+                    <div class="g_id_signin"
+                        data-type="standard"
+                        data-shape="pill"
+                        data-theme="outline"
+                        data-text="continue_with"
+                        data-size="large"
+                        data-logo_alignment="left"
+                        data-width="300">
+                    </div>
+                </div>
+
+                <div class="divider-text">
+                    <span>or</span>
+                </div>
+
+                <!-- ━━━ SIGN IN FORM ━━━ -->
+                <form id="signInForm" onsubmit="handleSignIn(event)">
+                    <div class="mb-3">
+                        <label class="form-label-dark">Email</label>
+                        <input type="email" id="loginEmail" class="form-control form-control-dark"
+                            placeholder="you@example.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label-dark d-flex justify-content-between">
+                            <span>Password</span>
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" id="loginPassword" class="form-control form-control-dark"
+                                placeholder="Enter your password" required minlength="6">
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', 'passToggleIcon1')">
+                                <i class="bi bi-eye" id="passToggleIcon1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-neon w-100 py-3 mb-3" id="signInSubmitBtn">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    </button>
+                </form>
+
+                <!-- ━━━ SIGN UP FORM (hidden by default) ━━━ -->
+                <form id="signUpForm" onsubmit="handleSignUp(event)" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label-dark">Full Name</label>
+                        <input type="text" id="registerName" class="form-control form-control-dark"
+                            placeholder="Your full name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-dark">Email</label>
+                        <input type="email" id="registerEmail" class="form-control form-control-dark"
+                            placeholder="you@example.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label-dark">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="registerPassword" class="form-control form-control-dark"
+                                placeholder="Min 6 characters, include a number" required minlength="6">
+                            <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', 'passToggleIcon2')">
+                                <i class="bi bi-eye" id="passToggleIcon2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-neon w-100 py-3 mb-3" id="signUpSubmitBtn">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </button>
+                </form>
+
+                <p class="text-center mb-0" style="color: var(--text-muted); font-size: 0.85rem;" id="switchText">
+                    Don't have an account? <a href="#" onclick="switchTab('signup'); return false;"
+                        style="color: var(--neon-green); text-decoration: none; font-weight: 600;">Sign Up</a>
+                </p>
+            </div>
+
+            <!-- Extra Info -->
+            <div class="text-center mt-4">
+                <small style="color: var(--text-muted); font-size: 0.75rem;">
+                    By signing in, you agree to our
+                    <a href="#" style="color: var(--text-secondary); text-decoration: underline;">Terms</a> &
+                    <a href="#" style="color: var(--text-secondary); text-decoration: underline;">Privacy Policy</a>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="shared.js"></script>
+    <script src="api-client.js"></script>
+
+    <script>
+        // Redirect if already logged in
+        if (API.isLoggedIn()) {
+            window.location.href = 'dashboard.html';
+        }
+
+        // ━━━ Tab Switching ━━━
+        function switchTab(tab) {
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const tabSignIn = document.getElementById('tabSignIn');
+            const tabSignUp = document.getElementById('tabSignUp');
+            const switchText = document.getElementById('switchText');
+            hideError();
+
+            if (tab === 'signin') {
+                signInForm.style.display = 'block';
+                signUpForm.style.display = 'none';
+                tabSignIn.classList.add('active');
+                tabSignUp.classList.remove('active');
+                switchText.innerHTML = `Don't have an account? <a href="#" onclick="switchTab('signup'); return false;" style="color: var(--neon-green); text-decoration: none; font-weight: 600;">Sign Up</a>`;
+            } else {
+                signInForm.style.display = 'none';
+                signUpForm.style.display = 'block';
+                tabSignUp.classList.add('active');
+                tabSignIn.classList.remove('active');
+                switchText.innerHTML = `Already have an account? <a href="#" onclick="switchTab('signin'); return false;" style="color: var(--neon-green); text-decoration: none; font-weight: 600;">Sign In</a>`;
+            }
+        }
+
+        // ━━━ Error Display ━━━
+        function showError(msg) {
+            const el = document.getElementById('authError');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('authError').classList.remove('show');
+        }
+
+        function setLoading(isLoading) {
+            document.getElementById('authLoading').classList.toggle('show', isLoading);
+        }
+
+        // ━━━ Password Toggle ━━━
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+
+        // ━━━ Sign In Handler ━━━
+        async function handleSignIn(e) {
+            e.preventDefault();
+            hideError();
+            setLoading(true);
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            const result = await API.login(email, password);
+            setLoading(false);
+
+            if (result.ok) {
+                const user = result.data.data?.user;
+                window.showToast?.(`Welcome back, ${user?.name || 'User'}!`, 'success');
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+            } else {
+                showError(result.data?.error || result.data?.message || 'Login failed. Please try again.');
+            }
+        }
+
+        // ━━━ Sign Up Handler ━━━
+        async function handleSignUp(e) {
+            e.preventDefault();
+            hideError();
+            setLoading(true);
+
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+
+            const result = await API.register(name, email, password);
+            setLoading(false);
+
+            if (result.ok) {
+                const user = result.data.data?.user;
+                window.showToast?.(`Welcome to GoHealthy, ${user?.name || 'User'}!`, 'success');
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+            } else {
+                showError(result.data?.error || 'Registration failed. Please try again.');
+            }
+        }
+
+        // (Google Identity Services UI is automatically rendered via the g_id_signin HTML data attributes)
+
+        async function handleGoogleCallback(response) {
+            setLoading(true);
+            hideError();
+
+            const result = await API.googleLogin(response.credential);
+            setLoading(false);
+
+            if (result.ok) {
+                window.showToast?.(`Welcome, ${result.data.user?.name || 'User'}!`, 'success');
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+            } else {
+                showError(result.data?.error || result.data?.message || 'Google login failed.');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

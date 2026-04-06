@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Go Healthy</title>
+  <meta name="description" content="Your personal health dashboard — track calories, water, weight and workouts.">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="demo.css">
+
+  <style>
+    /* ── Dash-specific overrides ── */
+    body { font-family: 'Inter', sans-serif; }
+
+    .dash-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      height: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .dash-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,255,136,0.08); }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--neon-green);
+    }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .4rem; }
+
+    .progress-bar-custom {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--glass-border);
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--neon-green), var(--electric-cyan));
+      transition: width 1s ease;
+    }
+
+    /* Water glasses */
+    .water-glass {
+      width: 24px; height: 36px;
+      border: 2px solid var(--glass-border);
+      border-radius: 0 0 6px 6px;
+      transition: all 0.3s;
+    }
+    .water-glass.filled {
+      border-color: var(--electric-cyan);
+      background: rgba(0,212,255,0.2);
+    }
+
+    /* Achievement badge */
+    .achievement-badge {
+      width: 80px; height: 96px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border-radius: 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--glass-border);
+      opacity: 0.4;
+      filter: grayscale(100%);
+      transition: all 0.3s;
+      cursor: default;
+    }
+    .achievement-badge.unlocked {
+      border-color: var(--neon-green);
+      opacity: 1;
+      filter: none;
+      box-shadow: 0 0 16px rgba(0,255,136,0.2);
+    }
+    .badge-icon { font-size: 2rem; }
+    .badge-label { font-size: 0.65rem; text-align: center; font-weight: 600; margin-top: 4px; color: var(--text-secondary); }
+
+    /* Meal table */
+    .meal-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .6rem 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .meal-row:last-child { border-bottom: none; }
+
+    /* Log Meal Modal */
+    .modal-content-dark { background: var(--bg-secondary); border: 1px solid var(--glass-border); }
+    .modal-content-dark .form-control,
+    .modal-content-dark .form-select {
+      background: var(--bg-primary);
+      border-color: var(--glass-border);
+      color: var(--text-primary);
+    }
+    .modal-content-dark .form-control:focus,
+    .modal-content-dark .form-select:focus {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 0 .2rem rgba(0,255,136,.15);
+    }
+
+    /* Chart bars */
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+    .bar-outer { width: 100%; border-radius: 4px; background: var(--bg-primary); height: 120px; display: flex; align-items: flex-end; }
+    .bar-inner { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.8s cubic-bezier(.25,.8,.25,1); min-height: 4px; }
+    .bar-day { font-size: 0.7rem; color: var(--text-muted); }
+    .bar-val { font-size: 0.65rem; color: var(--text-muted); }
+
+    /* Weight mini-chart */
+    #weightCanvas { width: 100% !important; height: 80px !important; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar navbar-expand-lg fixed-top glass-nav py-3">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-heart-pulse-fill text-neon fs-4"></i>
+        <span class="fw-bold fs-4">Go<span class="brand-accent">Healthy</span></span>
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#dashNav">
+        <i class="bi bi-list fs-2" style="color:var(--text-primary)"></i>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="dashNav">
+        <ul class="navbar-nav align-items-center gap-2">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="recipes.html">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="Mealplanner.html">Meal Planner</a></li>
+          <li class="nav-item"><a class="nav-link" href="nutriai.html">Nutri AI</a></li>
+          <li class="nav-item"><a class="nav-link active" href="dashboard.html">Dashboard</a></li>
+          <li class="nav-item ms-2">
+            <button onclick="signOut()" class="btn btn-sm px-4 py-2" style="background:rgba(255,82,82,.1);color:#ff5252;border:1px solid rgba(255,82,82,.3);">
+              <i class="bi bi-box-arrow-right me-1"></i>Sign Out
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile bottom nav -->
+  <div class="mobile-bottom-nav">
+    <a href="index.html" class="nav-item"><i class="bi bi-house-fill"></i>Home</a>
+    <a href="recipes.html" class="nav-item"><i class="bi bi-book"></i>Recipes</a>
+    <a href="Mealplanner.html" class="nav-item"><i class="bi bi-calendar-check"></i>Planner</a>
+    <a href="nutriai.html" class="nav-item"><i class="bi bi-robot"></i>AI</a>
+    <a href="dashboard.html" class="nav-item active"><i class="bi bi-speedometer2"></i>Dashboard</a>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <main style="padding-top: 90px; padding-bottom: 80px;">
+    <div class="container pb-4">
+
+      <!-- Header row -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+          <h1 class="fw-bold mb-0">Health <span class="text-gradient">Overview</span></h1>
+          <p id="greetingLine" class="mb-0" style="color:var(--text-muted);font-size:.9rem;"></p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-ghost rounded-pill px-4" onclick="exportPDF()">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
+          </button>
+          <button class="btn btn-neon rounded-pill px-4" onclick="openLogMealModal()">
+            <i class="bi bi-plus-circle me-1"></i>Log Meal
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="loadingState" class="text-center py-5">
+        <div class="spinner-border" style="color:var(--neon-green);" role="status"></div>
+        <p class="mt-3" style="color:var(--text-muted);">Loading your dashboard…</p>
+      </div>
+
+      <!-- Dashboard content (hidden until data loads) -->
+      <div id="dashContent" style="display:none;">
+
+        <!-- Row 1: Stats row -->
+        <div class="row g-4 mb-4">
+
+          <!-- Daily Calories -->
+          <div class="col-md-4">
+            <div class="dash-card">
+              <h6 class="stat-label mb-3"><i class="bi bi-fire me-1" style="color:var(--soft-orange)"></i>Daily Calories</h6>
+              <div class="d-flex align-items-baseline gap-2 mb-2">
+                <div class="stat-value" id="calToday">0</div>
+                <span style="color:var(--text-muted);" id="calGoalWrap">/ <span id="calGoal">2000</span> kcal
+                  <i class="bi bi-pencil-square ms-1" style="cursor:pointer; font-size:0.85rem; color:var(--neon-green); opacity:0.7;" onclick="editCalGoal()" title="Edit calorie target"></i>
+                </span>
+                <span id="calGoalEditWrap" style="display:none;">
+                  / <input type="number" id="calGoalInput" class="form-control form-control-sm d-inline-block bg-dark text-light border-secondary" style="width:80px; font-size:0.9rem; padding:2px 6px;" min="500" max="10000">
+                  kcal
+                  <i class="bi bi-check-circle-fill ms-1" style="cursor:pointer; font-size:1rem; color:var(--neon-green);" onclick="saveCalGoal()" title="Save"></i>
+                  <i class="bi bi-x-circle ms-1" style="cursor:pointer; font-size:1rem; color:#ff5252;" onclick="cancelCalGoalEdit()" title="Cancel"></i>
+                  <br>
+                  <a href="Mealplanner.html" class="btn btn-sm mt-2 rounded-pill px-3" style="background:var(--bg-primary); color:var(--electric-cyan); border:1px solid var(--electric-cyan); font-size:0.75rem;">
+                    <i class="bi bi-calculator me-1"></i>Set from Meal Planner
+                  </a>
+                </span>
+              </div>
+              <div class="progress-bar-custom mb-3">
+                <div class="progress-bar-fill" id="calBar" style="width:0%"></div>
+              </div>
+              <div class="d-flex justify-content-between text-center">
+                <div>
+                  <div class="fw-bold" id="macroProtein" style="color:var(--neon-green);">0g</div>
+                  <small style="color:var(--text-muted);">Protein</small>
+                </div>
+                <div>
+                  <div class="fw-bold" id="macroCarbs" style="color:var(--electric-cyan);">0g</div>
+                  <small style="color:var(--text-muted);">Carbs</small>
+                </div>
+                <div>
+                  <div class="fw-bold" id="macroFat" style="color:var(--soft-orange);">0g</div>
+                  <small style="color:var(--text-muted);">Fat</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weekly Calorie Chart -->
+          <div class="col-md-5">
+            <div class="dash-card">
+              <h6 class="stat-label mb-3"><i class="bi bi-bar-chart me-1" style="color:var(--electric-cyan)"></i>This Week</h6>
+              <div class="d-flex align-items-flex-end gap-1" id="weeklyChart" style="height:130px;align-items:flex-end;">
+                <p style="color:var(--text-muted); font-size:.85rem; margin:auto;">Loading…</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Streak & Score -->
+          <div class="col-md-3">
+            <div class="dash-card text-center">
+              <h6 class="stat-label mb-2"><i class="bi bi-lightning-charge me-1" style="color:var(--soft-orange)"></i>Streak</h6>
+              <div class="stat-value mb-1" style="color:var(--soft-orange);" id="streakVal">0</div>
+              <div style="color:var(--text-muted); line-height: 1.2; min-height: 38px;" id="streakSubtitle">
+                <i class="bi bi-stars"></i><br>
+                <span style="font-size:0.75rem;">Loading...</span>
+              </div>
+              <hr style="border-color:var(--glass-border); margin:.8rem 0;">
+              <h6 class="stat-label mb-2"><i class="bi bi-heart-pulse me-1" style="color:var(--neon-green)"></i>Health Score</h6>
+              <div class="stat-value" id="healthScore">—</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Water + Weight + Achievements -->
+        <div class="row g-4 mb-4">
+
+          <!-- Water Tracker -->
+          <div class="col-md-4">
+            <div class="dash-card text-center">
+              <h6 class="stat-label mb-3"><i class="bi bi-droplet-half me-1" style="color:var(--electric-cyan)"></i>Water Intake</h6>
+              <div class="d-flex align-items-baseline justify-content-center gap-2 mb-3">
+                <span class="stat-value" id="waterCount" style="color:var(--electric-cyan);">0</span>
+                <span style="color:var(--text-muted);">/ 8 glasses</span>
+              </div>
+              <div class="d-flex justify-content-center gap-2 mb-3" id="waterGlasses"></div>
+              <div class="d-flex justify-content-center gap-3">
+                <button id="waterDecBtn" class="btn btn-sm px-3" style="background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--glass-border);">−</button>
+                <button id="waterIncBtn" class="btn btn-sm px-3" style="background:var(--electric-cyan);color:#000;font-weight:700;">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weight Progress -->
+          <div class="col-md-4">
+            <div class="dash-card">
+              <h6 class="stat-label mb-3"><i class="bi bi-graph-up me-1" style="color:var(--purple-accent)"></i>Weight Progress</h6>
+              <div class="d-flex justify-content-between align-items-end mb-2">
+                <div>
+                  <span class="stat-value" style="color:var(--text-primary);" id="currentWeight">—</span>
+                  <span style="color:var(--text-muted);"> kg</span>
+                </div>
+                <span id="weightChange" class="badge" style="display:none;"></span>
+              </div>
+              <canvas id="weightCanvas" style="cursor: pointer;" onclick="openWeightHistoryModal()" title="Click to view full weight history"></canvas>
+              <button class="btn btn-sm w-100 mt-3" style="background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--glass-border);" onclick="logWeight()">
+                <i class="bi bi-pencil me-1"></i>Update Weight
+              </button>
+            </div>
+          </div>
+
+          <!-- Achievements -->
+          <div class="col-md-4">
+            <div class="dash-card">
+              <h6 class="stat-label mb-3"><i class="bi bi-trophy me-1" style="color:var(--soft-orange)"></i>Achievements</h6>
+              <div class="d-flex flex-wrap gap-2 justify-content-center" id="achievementsList"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 3: Today's Meals -->
+        <div class="row g-4">
+          <div class="col-12">
+            <div class="dash-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="stat-label mb-0"><i class="bi bi-journal-plus me-1" style="color:var(--neon-green)"></i>Today's Meals</h6>
+                <button class="btn btn-sm btn-neon rounded-pill px-3" onclick="openLogMealModal()">
+                  <i class="bi bi-plus me-1"></i>Add
+                </button>
+              </div>
+              <div id="mealList">
+                <p style="color:var(--text-muted);">No meals logged today.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 4: BMI Calculator -->
+        <div class="row g-4 mt-4">
+          <div class="col-12">
+            <div class="dash-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="stat-label mb-0"><i class="bi bi-calculator me-1" style="color:var(--neon-green)"></i>BMI Calculator</h6>
+              </div>
+              
+              <!-- Info Bar -->
+              <div class="p-2 mb-3 rounded d-flex align-items-center" style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3);">
+                <i class="bi bi-info-circle me-2" style="color: var(--electric-cyan);"></i>
+                <span style="font-size: 0.9rem; color: var(--text-primary);">Modify the values and click the Calculate button to use</span>
+              </div>
+
+              <div class="row g-4">
+                <!-- LEFT COLUMN: Form -->
+                <div class="col-lg-5">
+                  <ul class="nav nav-tabs nav-fill mb-0" id="bmiUnitTabs" role="tablist" style="border-bottom: none;">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active" id="us-tab" data-bs-toggle="tab" data-bs-target="#us-units" type="button" role="tab" style="background: var(--bg-primary); border-color: var(--glass-border) var(--glass-border) transparent var(--glass-border); color: var(--text-primary); border-top-left-radius: 8px;">US Units</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="metric-tab" data-bs-toggle="tab" data-bs-target="#metric-units" type="button" role="tab" style="background: rgba(255,255,255,0.02); border-color: var(--glass-border) var(--glass-border) var(--glass-border) var(--glass-border); color: var(--text-muted); border-top-right-radius: 8px;">Metric Units</button>
+                    </li>
+                  </ul>
+
+                  <div class="tab-content border p-3" style="background: var(--bg-primary); border-color: var(--glass-border) !important; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-top-right-radius: 8px;">
+                    
+                    <div class="row g-2 align-items-center mb-3">
+                      <div class="col-4 text-end pe-2"><label class="form-label mb-0" style="color:var(--text-secondary);">Age</label></div>
+                      <div class="col-8 d-flex align-items-center gap-2">
+                        <input type="number" id="bmiAge" class="form-control bg-dark text-light border-secondary" style="width: 80px;" value="25">
+                        <small style="color:var(--text-muted);">ages: 2 - 120</small>
+                      </div>
+                    </div>
+
+                    <div class="row g-2 align-items-center mb-3">
+                      <div class="col-4 text-end pe-2"><label class="form-label mb-0" style="color:var(--text-secondary);">Gender</label></div>
+                      <div class="col-8 d-flex gap-3">
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="bmiGender" id="genderMale" value="male" checked>
+                          <label class="form-check-label text-light" for="genderMale">Male</label>
+                        </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="bmiGender" id="genderFemale" value="female">
+                          <label class="form-check-label text-light" for="genderFemale">Female</label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- US Tab -->
+                    <div class="tab-pane fade show active" id="us-units" role="tabpanel">
+                      <div class="row g-2 align-items-center mb-3">
+                        <div class="col-4 text-end pe-2"><label class="form-label mb-0" style="color:var(--text-secondary);">Height</label></div>
+                        <div class="col-8 d-flex align-items-center gap-2">
+                          <input type="number" id="bmiHeightFt" class="form-control bg-dark text-light border-secondary text-end" style="width: 70px;" value="5">
+                          <span style="color:var(--text-muted);font-size:0.85rem">feet</span>
+                          <input type="number" id="bmiHeightIn" class="form-control bg-dark text-light border-secondary text-end" style="width: 70px;" value="10">
+                          <span style="color:var(--text-muted);font-size:0.85rem">inches</span>
+                        </div>
+                      </div>
+                      <div class="row g-2 align-items-center mb-4">
+                        <div class="col-4 text-end pe-2"><label class="form-label mb-0" style="color:var(--text-secondary);">Weight</label></div>
+                        <div class="col-8 d-flex align-items-center gap-2">
+                          <input type="number" id="bmiWeightLbs" class="form-control bg-dark text-light border-secondary text-end" style="width: 100px;" value="160">
+                          <span style="color:var(--text-muted);font-size:0.85rem">pounds</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Metric Tab -->
+                    <div class="tab-pane fade" id="metric-units" role="tabpanel">
+                      <div class="row g-2 align-items-center mb-3">
+                        <div class="col-4 text-end pe-2"><label class="form-label mb-0" style="color:var(--text-secondary);">Height</label></div>
+                        <div class="col-8 d-flex align-items-center gap-2">
+                          <input type="number" id="bmiHeightCm" class="form-control bg-dark text-light border-secondary text-end" style="width: 100px;" value="178">
+                          <span style="color:var(--text-muted);font-size:0.85rem">cm</span>
+                        </div>
+                      </div>
+                      <div class="row g-2 align-items-center mb-4">
+                        <div class="col-4 text-end pe-2"><label class="form-label mb-0" style="color:var(--text-secondary);">Weight</label></div>
+                        <div class="col-8 d-flex align-items-center gap-2">
+                          <input type="number" id="bmiWeightKg" class="form-control bg-dark text-light border-secondary text-end" style="width: 100px;" value="72.5">
+                          <span style="color:var(--text-muted);font-size:0.85rem">kg</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row g-2">
+                      <div class="col-4"></div>
+                      <div class="col-8 d-flex gap-2">
+                        <button class="btn btn-success d-flex align-items-center gap-2" style="background:#558b2f; border-color:#558b2f;" onclick="calculateAdvancedBMI()">
+                          Calculate <i class="bi bi-play-circle-fill"></i>
+                        </button>
+                        <button class="btn btn-secondary" style="background:#757575; border-color:#757575;" onclick="clearBMIForm()">Clear</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Result -->
+                <div class="col-lg-7">
+                  <div id="extendedBmiResult" class="d-none w-100 p-1">
+                    
+                    <div class="d-flex justify-content-between align-items-center p-2 px-3 mb-3" style="background: #558b2f; border-radius: 4px;">
+                      <h5 class="mb-0 text-white fw-light">Result</h5>
+                      <i class="bi bi-floppy text-white" style="cursor: pointer; opacity: 0.8;" title="Save"></i>
+                    </div>
+
+                    <div class="mb-2">
+                      <span class="fw-bold fs-4 text-light">BMI = <span id="resBmiValue">23</span> kg/m²</span>
+                      <span id="resBmiCategory" class="ms-2 fw-semibold" style="font-size: 1.1rem; color: #66bb6a;">(Normal)</span>
+                    </div>
+
+                    <div class="text-center position-relative mb-2 mt-4" style="max-width: 500px; margin: auto;">
+                      <svg viewBox="0 0 320 160" style="width:100%; height:auto;">
+                        <g id="bmiArcs" transform="translate(160, 140)"></g>
+                        <g id="bmiLabels" transform="translate(160, 140)"></g>
+                        <g id="bmiNeedle" transform="translate(160, 140) rotate(0)">
+                          <circle cx="0" cy="0" r="7" fill="#aaa" />
+                          <polygon points="-3,-7 3,-7 0,-105" fill="#aaa" />
+                        </g>
+                      </svg>
+                    </div>
+
+                    <ul class="text-light mt-3 mb-0" style="font-size: 0.95rem; list-style: disc; padding-left: 20px;">
+                      <li>Healthy BMI range: <span id="resBmiRange">18.5 kg/m² - 25 kg/m²</span></li>
+                      <li>Healthy weight for the height: <span id="resHealthyWeight"></span></li>
+                      <li>BMI Prime: <span id="resBmiPrime">0.92</span></li>
+                      <li>Ponderal Index: <span id="resPonderal">12.9 kg/m³</span></li>
+                    </ul>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dashContent -->
+    </div>
+  </main>
+
+  <!-- ── LOG MEAL MODAL ── -->
+  <div class="modal fade" id="mealModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-dark shadow-lg">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" style="color:var(--text-primary)">Log Meal</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="mealForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label" style="color:var(--text-secondary);">Meal Type</label>
+              <select id="mealType" class="form-select">
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" style="color:var(--text-secondary);">Food Name</label>
+              <input type="text" id="mealName" class="form-control" placeholder="e.g. Chicken Salad" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label" style="color:var(--text-secondary);">Calories</label>
+                <input type="number" id="mealCal" class="form-control" min="0" required placeholder="kcal">
+              </div>
+              <div class="col-6">
+                <label class="form-label" style="color:var(--text-secondary);">Protein (g)</label>
+                <input type="number" id="mealProtein" class="form-control" min="0" placeholder="g">
+              </div>
+              <div class="col-6">
+                <label class="form-label" style="color:var(--text-secondary);">Carbs (g)</label>
+                <input type="number" id="mealCarbs" class="form-control" min="0" placeholder="g">
+              </div>
+              <div class="col-6">
+                <label class="form-label" style="color:var(--text-secondary);">Fat (g)</label>
+                <input type="number" id="mealFat" class="form-control" min="0" placeholder="g">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-ghost rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-neon rounded-pill px-4">Save Meal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WEIGHT HISTORY MODAL ── -->
+  <div class="modal fade" id="weightHistoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content modal-content-dark shadow-lg">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" style="color:var(--text-primary)"><i class="bi bi-graph-up me-2" style="color:var(--purple-accent);"></i>Weight History</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div id="weightHistoryList" class="list-group list-group-flush" style="background: var(--bg-secondary);">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-darker">
+          <button type="button" class="btn btn-ghost rounded-pill px-4 w-100" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast ── -->
+  <div id="toastEl" class="position-fixed bottom-0 end-0 m-4 p-3 rounded-3" role="alert" style="background:var(--bg-secondary);border:1px solid var(--glass-border);color:var(--text-primary);display:none;z-index:9999;min-width:240px;">
+    <span id="toastMsg"></span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="api-client.js"></script>
+
+  <script>
+    // ── State ──────────────────────────────────────────────
+    const BASE = 'http://localhost:5000/api';
+    let dashData = null;
+    let todayMeals = [];
+    let weightHistory = [];
+    let waterCount = 0;
+    let calGoal = 2000;
+    let mealModal;
+
+    // ── Boot ───────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Guard: redirect if not logged in
+      if (!API.isLoggedIn()) {
+        window.location.href = 'sign_in.html';
+        return;
+      }
+      mealModal = new bootstrap.Modal(document.getElementById('mealModal'));
+      document.getElementById('mealForm').addEventListener('submit', submitMeal);
+      document.getElementById('waterIncBtn').addEventListener('click', () => updateWater(true));
+      document.getElementById('waterDecBtn').addEventListener('click', () => updateWater(false));
+
+      await loadDashboard();
+    });
+
+    // ── Auth helpers ────────────────────────────────────────
+    function signOut() {
+      localStorage.removeItem('gohealthy_token');
+      localStorage.removeItem('gohealthy_user');
+      window.location.href = 'sign_in.html';
+    }
+
+    // ── Fetch wrapper ───────────────────────────────────────
+    async function apiFetch(path, opts = {}) {
+      const token = API.getToken();
+      const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+      try {
+        const res = await fetch(`${BASE}${path}`, { ...opts, headers });
+        const data = await res.json();
+        return { ok: res.ok, status: res.status, data };
+      } catch (err) {
+        console.error(`API fetch error for ${path}:`, err);
+        return { ok: false, status: 0, data: { error: 'Network error' } };
+      }
+    }
+
+    // ── Load Everything ─────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        // Check auth token first
+        if (!API.getToken()) {
+          showToast('Please sign in to view your dashboard', 'error');
+          document.getElementById('loadingState').innerHTML = `
+            <i class="bi bi-lock" style="font-size:3rem;color:var(--soft-orange);"></i>
+            <p class="mt-3" style="color:var(--text-muted);">Please <a href="sign_in.html" style="color:var(--neon-green);">sign in</a> to view your dashboard.</p>`;
+          return;
+        }
+
+        const [dashRes, mealsRes, weightRes] = await Promise.all([
+          apiFetch('/dashboard'),
+          apiFetch('/meals/today'),
+          apiFetch('/weight/history'),
+        ]);
+
+        if (!dashRes.ok) {
+          if (dashRes.status === 401) {
+            showToast('Session expired. Please sign in again.', 'error');
+            setTimeout(() => { window.location.href = 'sign_in.html'; }, 1500);
+            return;
+          }
+          throw new Error('Failed to load dashboard');
+        }
+
+        dashData = dashRes.data.data;
+        todayMeals = mealsRes.data?.data?.meals || [];
+        weightHistory = weightRes.data?.data || [];
+        waterCount = dashData.waterIntake || 0;
+        calGoal = dashData.calorieTarget || 2000;
+
+        console.log('[Dashboard] Water count loaded from server:', waterCount);
+        console.log('[Dashboard] Streak loaded from server:', dashData.currentStreak);
+
+        renderAll();
+      } catch (err) {
+        console.error('[Dashboard] Load error:', err);
+        showToast('Failed to load dashboard. Is the backend running on port 5000?', 'error');
+        document.getElementById('loadingState').innerHTML = `
+          <i class="bi bi-exclamation-triangle" style="font-size:3rem;color:var(--soft-orange);"></i>
+          <p class="mt-3" style="color:var(--text-muted);">Could not connect to backend. Make sure the server is running.</p>`;
+      }
+    }
+
+    function renderAll() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dashContent').style.display = '';
+
+      const user = API.getUser();
+      const hour = new Date().getHours();
+      const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greetingLine').textContent = `${greeting}${user?.name ? ', ' + user.name.split(' ')[0] : ''}! Here's your health update.`;
+
+      renderCalories();
+      renderWeeklyChart();
+      renderStreakScore();
+      renderWater();
+      renderWeight();
+      renderAchievements();
+      renderMeals();
+    }
+
+    // ── Calories ───────────────────────────────────────────
+    function renderCalories() {
+      const cal = dashData.totalCalories || 0;
+      const macros = dashData.macros || {};
+      document.getElementById('calToday').textContent = cal;
+      document.getElementById('calGoal').textContent = calGoal;
+      document.getElementById('calBar').style.width = Math.min((cal / calGoal) * 100, 100) + '%';
+      document.getElementById('macroProtein').textContent = (macros.protein || 0) + 'g';
+      document.getElementById('macroCarbs').textContent = (macros.carbs || 0) + 'g';
+      document.getElementById('macroFat').textContent = (macros.fat || 0) + 'g';
+    }
+
+    // ── Editable Calorie Goal ────────────────────────────────
+    function editCalGoal() {
+      document.getElementById('calGoalWrap').style.display = 'none';
+      document.getElementById('calGoalEditWrap').style.display = '';
+      document.getElementById('calGoalInput').value = calGoal;
+      document.getElementById('calGoalInput').focus();
+    }
+
+    function cancelCalGoalEdit() {
+      document.getElementById('calGoalEditWrap').style.display = 'none';
+      document.getElementById('calGoalWrap').style.display = '';
+    }
+
+    async function saveCalGoal() {
+      const newGoal = parseInt(document.getElementById('calGoalInput').value);
+      if (!newGoal || newGoal < 500 || newGoal > 10000) {
+        showToast('Please enter a valid calorie target (500–10000)', 'error');
+        return;
+      }
+      const res = await apiFetch('/dashboard/preferences', {
+        method: 'PUT',
+        body: JSON.stringify({ calorieTarget: newGoal })
+      });
+      if (res.ok) {
+        calGoal = newGoal;
+        document.getElementById('calGoal').textContent = calGoal;
+        cancelCalGoalEdit();
+        renderCalories();
+        showToast(`Calorie target updated to ${calGoal} kcal ✓`, 'success');
+      } else {
+        showToast('Failed to update calorie target', 'error');
+      }
+    }
+
+    // ── Weekly Chart ────────────────────────────────────────
+    async function renderWeeklyChart() {
+      const res = await apiFetch('/meals/weekly-summary');
+      const chartEl = document.getElementById('weeklyChart');
+      chartEl.innerHTML = '';
+
+      if (!res.ok || !res.data?.data?.length) {
+        chartEl.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;margin:auto;">No weekly data yet.</p>';
+        return;
+      }
+
+      const data = res.data.data;
+      const max = Math.max(...data.map(d => d.totalCalories), calGoal, 1);
+
+      data.forEach(d => {
+        const pct = Math.max((d.totalCalories / max) * 100, 4);
+        const over = d.totalCalories > calGoal;
+        const day = new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' });
+
+        const wrap = document.createElement('div');
+        wrap.className = 'bar-wrap';
+        wrap.innerHTML = `
+          <span class="bar-val">${d.totalCalories || ''}</span>
+          <div class="bar-outer">
+            <div class="bar-inner" style="height:${pct}%;background:${over ? 'var(--soft-orange)' : 'var(--neon-green)'};"></div>
+          </div>
+          <span class="bar-day">${day}</span>`;
+        chartEl.appendChild(wrap);
+      });
+    }
+
+    // ── Streak & Score ─────────────────────────────────────
+    function renderStreakScore() {
+      const streak = dashData.currentStreak || 0;
+      const status = dashData.streakStatus || 'new_user';
+      
+      const streakValEl = document.getElementById('streakVal');
+      streakValEl.textContent = streak;
+      
+      // Dynamic messaging & heat icon
+      let msg = "";
+      let icon = '<i class="bi bi-stars"></i>';
+      
+      if (status === 'new_user') {
+          msg = "Ready to build habits? Let's start! ✨";
+          streakValEl.style.color = 'var(--text-muted)';
+      }
+      else if (status === 'broken') {
+          msg = "Today is a fresh start! 🌱";
+          streakValEl.style.color = 'var(--text-muted)';
+      }
+      else if (status === 'comeback') {
+          msg = "Welcome back! 💪";
+          streakValEl.style.color = 'var(--neon-green)';
+          icon = '<i class="bi bi-fire" style="color:var(--soft-orange);"></i>';
+      }
+      else if (status === 'first_day') {
+          msg = "Great start! 🚀";
+          streakValEl.style.color = 'var(--neon-green)';
+      }
+      else {
+          streakValEl.style.color = 'var(--soft-orange)'; // active fire color
+          if (streak >= 7) {
+            msg = "You're on fire! 🔥🔥🔥";
+            icon = '<i class="bi bi-fire" style="color:#ff3300; filter: drop-shadow(0 0 8px #ff3300); font-size: 1.1rem;"></i>';
+          } else if (streak >= 3) {
+            msg = `Consistency is key! You got this.`; 
+            icon = '<i class="bi bi-fire" style="color:var(--soft-orange); font-size: 1rem;"></i>';
+          } else {
+            msg = `Keep it going!`;
+            icon = '<i class="bi bi-fire" style="color:var(--soft-orange); font-size: 0.9rem;"></i>';
+          }
+      }
+      
+      if (streak === 0) icon = '<i class="bi bi-stars" style="color:var(--text-muted);"></i>';
+
+      const streakSubtitle = document.getElementById('streakSubtitle');
+      if (streakSubtitle) {
+         streakSubtitle.innerHTML = `${icon} <br><span style="font-size:0.75rem;">${msg}</span>`;
+      }
+
+      const score = dashData.healthScore;
+      const el = document.getElementById('healthScore');
+      el.textContent = score ?? '—';
+      el.style.color = score >= 70 ? 'var(--neon-green)' : 'var(--soft-orange)';
+    }
+
+    // ── Water ──────────────────────────────────────────────
+    function renderWater() {
+      document.getElementById('waterCount').textContent = waterCount;
+      const container = document.getElementById('waterGlasses');
+      container.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const g = document.createElement('div');
+        g.className = 'water-glass' + (i < waterCount ? ' filled' : '');
+        container.appendChild(g);
+      }
+    }
+
+    async function updateWater(inc) {
+      if (!inc && waterCount === 0) return;
+      const endpoint = inc ? '/water/increment' : '/water/decrement';
+      const res = await apiFetch(endpoint, { method: 'POST' });
+      if (res.ok && res.data?.data) {
+        waterCount = res.data.data.count;
+        renderWater();
+      }
+    }
+
+    // ── Weight ─────────────────────────────────────────────
+    function renderWeight() {
+      if (!weightHistory.length) return;
+      const last = weightHistory[weightHistory.length - 1];
+      document.getElementById('currentWeight').textContent = last.weight;
+
+      if (weightHistory.length > 7) {
+        const prev = weightHistory[weightHistory.length - 8];
+        const diff = (last.weight - prev.weight).toFixed(1);
+        const el = document.getElementById('weightChange');
+        el.style.display = '';
+        el.textContent = (diff > 0 ? '+' : '') + diff + ' kg this week';
+        el.style.background = diff > 0 ? 'var(--soft-orange)' : 'var(--neon-green)';
+        el.style.color = '#000';
+      }
+
+      // Mini sparkline
+      const canvas = document.getElementById('weightCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.offsetWidth || 260, H = 80;
+      canvas.width = W; canvas.height = H;
+
+      const vals = weightHistory.map(h => h.weight);
+      const min = Math.min(...vals) - 1, max = Math.max(...vals) + 1, range = max - min;
+      const step = W / (vals.length - 1 || 1);
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      vals.forEach((v, i) => {
+        const x = i * step;
+        const y = H - ((v - min) / range) * (H - 10) - 5;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    async function logWeight() {
+      const input = prompt('Enter new weight (kg):');
+      if (!input || isNaN(input) || input < 20 || input > 500) return;
+      const res = await apiFetch('/weight', { method: 'POST', body: JSON.stringify({ weight: Number(input) }) });
+      if (res.ok && res.data?.data) {
+        weightHistory = [...weightHistory, res.data.data].slice(-30);
+        renderWeight();
+        showToast('Weight updated ✓', 'success');
+      }
+    }
+
+    // ── Achievements ───────────────────────────────────────
+    function renderAchievements() {
+      const list = dashData.achievements || [];
+      const el = document.getElementById('achievementsList');
+      el.innerHTML = '';
+      if (!list.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">No achievements yet.</p>'; return; }
+      list.forEach(a => {
+        const div = document.createElement('div');
+        div.className = 'achievement-badge' + (a.unlocked ? ' unlocked' : '');
+        div.title = a.unlocked ? 'Unlocked!' : 'Locked';
+        div.innerHTML = `<span class="badge-icon">${a.unlocked ? a.icon : '🔒'}</span><span class="badge-label">${a.label}</span>`;
+        el.appendChild(div);
+      });
+    }
+
+    // ── Meals ──────────────────────────────────────────────
+    function renderMeals() {
+      const el = document.getElementById('mealList');
+      if (!todayMeals.length) {
+        el.innerHTML = '<p style="color:var(--text-muted);">No meals logged today. Click "Log Meal" to start!</p>';
+        return;
+      }
+      el.innerHTML = todayMeals.map(m => `
+        <div class="meal-row">
+          <div>
+            <span class="fw-semibold me-2" style="color:var(--text-primary);">${m.name}</span>
+            <span class="badge rounded-pill" style="background:var(--bg-primary);color:var(--text-muted);border:1px solid var(--glass-border);">${m.mealType}</span>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="fw-bold" style="color:var(--neon-green);">${m.calories} kcal</span>
+            <button class="btn btn-sm p-0" style="color:#ff5252;background:none;border:none;" onclick="deleteMeal('${m._id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>`).join('');
+    }
+
+    async function deleteMeal(id) {
+      const res = await apiFetch(`/meals/${id}`, { method: 'DELETE' });
+      if (res.ok) { await loadDashboard(); showToast('Meal removed', 'info'); }
+    }
+
+    // ── Log Meal Modal ─────────────────────────────────────
+    function openLogMealModal() { mealModal.show(); }
+
+    async function submitMeal(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('mealName').value.trim(),
+        mealType: document.getElementById('mealType').value,
+        calories: Number(document.getElementById('mealCal').value),
+        protein: Number(document.getElementById('mealProtein').value || 0),
+        carbs: Number(document.getElementById('mealCarbs').value || 0),
+        fat: Number(document.getElementById('mealFat').value || 0),
+      };
+      const res = await apiFetch('/meals', { method: 'POST', body: JSON.stringify(payload) });
+      if (res.ok) {
+        mealModal.hide();
+        document.getElementById('mealForm').reset();
+        await loadDashboard();
+        showToast('Meal logged successfully! 🎉', 'success');
+      } else {
+        showToast('Failed to log meal — ' + (res.data?.error || 'unknown error'), 'error');
+      }
+    }
+
+    // ── Weight History ─────────────────────────────────────
+    function openWeightHistoryModal() {
+      const listEl = document.getElementById('weightHistoryList');
+      if (!weightHistory || weightHistory.length === 0) {
+        listEl.innerHTML = '<div class="p-4 text-center text-muted">No weight records found.</div>';
+      } else {
+        // Sort newest first
+        const sorted = [...weightHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+        listEl.innerHTML = sorted.map(log => {
+          const dateStr = new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          return `
+            <div class="list-group-item d-flex justify-content-between align-items-center" style="background: transparent; border-color: var(--glass-border); padding: 1rem 1.5rem;">
+              <div>
+                <i class="bi bi-calendar-event me-2 text-muted"></i>
+                <span style="color: var(--text-primary); font-size: 0.95rem;">${dateStr}</span>
+              </div>
+              <div class="fw-bold fs-5" style="color: var(--neon-green);">
+                ${log.weight} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">kg</span>
+              </div>
+            </div>`;
+        }).join('');
+      }
+      
+      let modal = bootstrap.Modal.getInstance(document.getElementById('weightHistoryModal'));
+      if (!modal) {
+        modal = new bootstrap.Modal(document.getElementById('weightHistoryModal'));
+      }
+      modal.show();
+    }
+
+    // ── BMI Calculator ─────────────────────────────────────
+    
+    // Tab styling sync
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('#bmiUnitTabs button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function (event) {
+          // Reset old active styles
+          document.querySelectorAll('#bmiUnitTabs button').forEach(btn => {
+             btn.style.background = 'rgba(255,255,255,0.02)';
+             btn.style.color = 'var(--text-muted)';
+          });
+          // Set new active style
+          event.target.style.background = 'var(--bg-primary)';
+          event.target.style.color = 'var(--text-primary)';
+        });
+      });
+    });
+
+    function clearBMIForm() {
+      document.getElementById('bmiAge').value = '25';
+      document.getElementById('genderMale').checked = true;
+      document.getElementById('bmiHeightFt').value = '5';
+      document.getElementById('bmiHeightIn').value = '10';
+      document.getElementById('bmiWeightLbs').value = '160';
+      document.getElementById('bmiHeightCm').value = '178';
+      document.getElementById('bmiWeightKg').value = '72.5';
+      document.getElementById('extendedBmiResult').classList.add('d-none');
+    }
+
+    function calculateAdvancedBMI() {
+      const isUS = document.getElementById('us-tab').classList.contains('active');
+      let heightCm = 0, weightKg = 0;
+
+      if (isUS) {
+        const ft = parseFloat(document.getElementById('bmiHeightFt').value) || 0;
+        const inc = parseFloat(document.getElementById('bmiHeightIn').value) || 0;
+        const lbs = parseFloat(document.getElementById('bmiWeightLbs').value) || 0;
+        heightCm = (ft * 30.48) + (inc * 2.54);
+        weightKg = lbs * 0.453592;
+      } else {
+        heightCm = parseFloat(document.getElementById('bmiHeightCm').value) || 0;
+        weightKg = parseFloat(document.getElementById('bmiWeightKg').value) || 0;
+      }
+
+      if (heightCm <= 0 || weightKg <= 0) {
+        showToast('Please enter valid height and weight.', 'error');
+        return;
+      }
+
+      const heightM = heightCm / 100;
+      const bmi = weightKg / (heightM * heightM);
+      const ponderal = weightKg / (Math.pow(heightM, 3));
+      const prime = bmi / 25;
+
+      const hMinKg = 18.5 * (heightM * heightM);
+      const hMaxKg = 25 * (heightM * heightM);
+
+      document.getElementById('resBmiValue').textContent = bmi.toFixed(1);
+      
+      let catText = '', catColor = '';
+      if (bmi < 16) { catText = 'Severe Thinness'; catColor = '#ef5350'; }
+      else if (bmi < 17) { catText = 'Moderate Thinness'; catColor = '#ffb74d'; }
+      else if (bmi < 18.5) { catText = 'Mild Thinness'; catColor = '#fff176'; }
+      else if (bmi < 25) { catText = 'Normal'; catColor = '#66bb6a'; }
+      else if (bmi < 30) { catText = 'Overweight'; catColor = '#fff176'; }
+      else if (bmi < 35) { catText = 'Obese Class I'; catColor = '#ffb74d'; }
+      else if (bmi < 40) { catText = 'Obese Class II'; catColor = '#ef5350'; }
+      else { catText = 'Obese Class III'; catColor = '#c62828'; }
+
+      const catEl = document.getElementById('resBmiCategory');
+      catEl.textContent = `(${catText})`;
+      catEl.style.color = catColor;
+
+      document.getElementById('resBmiPrime').textContent = prime.toFixed(2);
+      document.getElementById('resPonderal').textContent = ponderal.toFixed(1) + ' kg/m³';
+      
+      if (isUS) {
+        const minLbs = hMinKg * 2.20462;
+        const maxLbs = hMaxKg * 2.20462;
+        document.getElementById('resHealthyWeight').textContent = `${minLbs.toFixed(1)} lbs - ${maxLbs.toFixed(1)} lbs`;
+      } else {
+        document.getElementById('resHealthyWeight').textContent = `${hMinKg.toFixed(1)} kg - ${hMaxKg.toFixed(1)} kg`;
+      }
+
+      drawSMISvgChart(bmi);
+      document.getElementById('extendedBmiResult').classList.remove('d-none');
+    }
+
+    function drawSMISvgChart(bmi) {
+      const rangeMin = 14, rangeMax = 42, rangeSpan = rangeMax - rangeMin;
+      const bands = [
+        { max: 16, color: '#ef5350', label: '16' },
+        { max: 17, color: '#ffb74d', label: '17' },
+        { max: 18.5, color: '#fff176', label: '18.5', tlabel: 'Underweight' },
+        { max: 25, color: '#2e7d32', label: '25', tlabel: 'Normal' },
+        { max: 30, color: '#fbc02d', label: '30', tlabel: 'Overweight' },
+        { max: 35, color: '#ef5350', label: '35', tlabel: 'Obesity' },
+        { max: 40, color: '#c62828', label: '40' },
+        { max: 42, color: '#8e0000' }
+      ];
+
+      const arcsGroup = document.getElementById('bmiArcs');
+      const labelsGroup = document.getElementById('bmiLabels');
+      arcsGroup.innerHTML = '';
+      labelsGroup.innerHTML = '';
+
+      let currentMin = rangeMin;
+      const radiusOuter = 115, radiusInner = 75;
+      
+      function getPt(r, val) {
+        let v = Math.max(rangeMin, Math.min(rangeMax, val));
+        let rad = Math.PI - (((v - rangeMin) / rangeSpan) * Math.PI);
+        return { x: r * Math.cos(rad), y: -r * Math.sin(rad) };
+      }
+
+      bands.forEach(band => {
+        let pO1 = getPt(radiusOuter, currentMin), pO2 = getPt(radiusOuter, band.max);
+        let pI1 = getPt(radiusInner, currentMin), pI2 = getPt(radiusInner, band.max);
+
+        let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        let d = `M ${pO1.x} ${pO1.y} A ${radiusOuter} ${radiusOuter} 0 0 1 ${pO2.x} ${pO2.y} L ${pI2.x} ${pI2.y} A ${radiusInner} ${radiusInner} 0 0 0 ${pI1.x} ${pI1.y} Z`;
+        path.setAttribute('d', d);
+        path.setAttribute('fill', band.color);
+        arcsGroup.appendChild(path);
+
+        if (band.label) {
+          let ptText = getPt(radiusInner - 16, band.max);
+          let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          text.setAttribute('x', ptText.x);
+          text.setAttribute('y', ptText.y);
+          text.setAttribute('fill', 'var(--text-primary)');
+          text.setAttribute('font-size', '12');
+          text.setAttribute('text-anchor', 'middle');
+          let rot = -180 + (((band.max - rangeMin) / rangeSpan) * 180) + 90; 
+          text.setAttribute('transform', `rotate(${rot}, ${ptText.x}, ${ptText.y})`);
+          text.textContent = band.label;
+          labelsGroup.appendChild(text);
+        }
+
+        if (band.tlabel) {
+          let midVal = (currentMin + band.max) / 2;
+          if (band.max === 35) midVal = 32.5; 
+          let ptText = getPt(radiusOuter + 18, midVal);
+          let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          text.setAttribute('x', ptText.x);
+          text.setAttribute('y', ptText.y);
+          text.setAttribute('fill', 'var(--text-muted)');
+          text.setAttribute('font-size', '13');
+          text.setAttribute('text-anchor', 'middle');
+          let rot = -180 + (((midVal - rangeMin) / rangeSpan) * 180) + 90;
+          text.setAttribute('transform', `rotate(${rot}, ${ptText.x}, ${ptText.y})`);
+          text.textContent = band.tlabel;
+          labelsGroup.appendChild(text);
+        }
+        currentMin = band.max;
+      });
+
+      let bPct = (Math.max(rangeMin, Math.min(rangeMax, bmi)) - rangeMin) / rangeSpan;
+      document.getElementById('bmiNeedle').setAttribute('transform', `translate(160, 140) rotate(${-90 + (bPct * 180)})`);
+    }
+
+    // ── Export PDF ─────────────────────────────────────────
+    function exportPDF() {
+      const user = API.getUser();
+      window.print();
+    }
+
+    // ── Toast ──────────────────────────────────────────────
+    function showToast(msg, type = 'info') {
+      const el = document.getElementById('toastEl');
+      const colors = { success: 'var(--neon-green)', error: '#ff5252', info: 'var(--electric-cyan)' };
+      el.style.borderColor = colors[type] || 'var(--glass-border)';
+      document.getElementById('toastMsg').textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3500);
+    }
+  </script>
+
+  <footer class="footer-dark" id="mainFooter"></footer>
+</body>
+</html>

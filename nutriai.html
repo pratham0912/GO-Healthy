@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutri AI — Go Healthy</title>
+  <meta name="description"
+    content="AI-powered nutrition assistant with voice input, regional diet intelligence, and personalized meal plans.">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="demo.css">
+</head>
+
+<body>
+
+
+
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg fixed-top glass-nav py-3">
+    <div class="container">
+      <div class="d-flex align-items-center gap-3">
+        <a class="navbar-brand d-flex align-items-center gap-2 m-0" href="index.html">
+          <i class="bi bi-heart-pulse-fill text-neon fs-4"></i>
+          <span class="fw-bold fs-4">Go<span class="brand-accent">Healthy</span></span>
+        </a>
+        <button class="btn btn-sm btn-outline-neon d-flex align-items-center justify-content-center" onclick="API.toggleTheme()" id="themeToggleBtn" style="width: 34px; height: 34px; border-radius: 50%; padding: 0;" title="Toggle Theme">
+          <i class="bi bi-moon-stars" id="themeIcon"></i>
+        </button>
+      </div>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <i class="bi bi-list fs-2" style="color: var(--text-primary)"></i>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav align-items-center gap-2">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="recipes.html">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="Mealplanner.html">Meal Planner</a></li>
+          <li class="nav-item"><a class="nav-link active" href="nutriai.html">Nutri AI</a></li>
+          <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+          <li class="nav-item ms-2"><a href="sign_in.html" class="btn btn-neon px-4 py-2">Sign In</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Bottom Nav -->
+  <div class="mobile-bottom-nav">
+    <a href="index.html" class="nav-item"><i class="bi bi-house-fill"></i>Home</a>
+    <a href="recipes.html" class="nav-item"><i class="bi bi-book"></i>Recipes</a>
+    <a href="Mealplanner.html" class="nav-item"><i class="bi bi-calendar-check"></i>Planner</a>
+    <a href="nutriai.html" class="nav-item active"><i class="bi bi-robot"></i>AI</a>
+    <a href="dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i>Dashboard</a>
+  </div>
+
+  <!-- ━━━ CHAT INTERFACE ━━━ -->
+  <section style="padding-top: 100px; padding-bottom: 100px; min-height: 100vh;">
+    <div class="container" style="max-width: 800px;">
+
+      <!-- Welcome Screen -->
+      <div id="welcomeScreen" class="text-center py-5">
+        <div class="ai-avatar mx-auto mb-4 reveal active">
+          <i class="bi bi-stars"></i>
+        </div>
+        <h1 class="display-5 fw-bold mb-2 reveal active delay-1">Nutri <span class="text-gradient">AI</span></h1>
+        <p class="mb-2 reveal active delay-2" style="color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Your AI-powered nutrition expert. Ask about diets, macros, meal plans, or any health question.
+        </p>
+
+        <!-- Location Badge -->
+        <div id="aiLocationBadge" class="mb-4 reveal active delay-2" style="display: none;">
+          <span class="badge-cyan" style="padding: 6px 16px; font-size: 0.8rem;">
+            <i class="bi bi-geo-alt me-1"></i><span id="aiLocLabel"></span> — Regional diet mode active
+          </span>
+        </div>
+
+        <!-- Capabilities -->
+        <div class="row g-3 mt-4 mb-5 reveal active delay-3" style="max-width: 600px; margin: 0 auto;">
+          <div class="col-6">
+            <div class="glass-card p-3 text-center h-100">
+              <i class="bi bi-calculator" style="color: var(--neon-green); font-size: 1.3rem;"></i>
+              <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">Calorie & Macro Calculator
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="glass-card p-3 text-center h-100">
+              <i class="bi bi-geo-alt" style="color: var(--soft-orange); font-size: 1.3rem;"></i>
+              <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">Regional Diet Intelligence
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="glass-card p-3 text-center h-100">
+              <i class="bi bi-calendar-week" style="color: var(--electric-cyan); font-size: 1.3rem;"></i>
+              <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">Personalized Meal Plans</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="glass-card p-3 text-center h-100">
+              <i class="bi bi-cart3" style="color: var(--purple-accent); font-size: 1.3rem;"></i>
+              <div class="mt-2" style="font-size: 0.8rem; color: var(--text-secondary);">Grocery Lists & Costs</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggestion Chips -->
+        <div class="d-flex flex-wrap justify-content-center gap-2 reveal active delay-4">
+          <button class="suggestion-chip" onclick="askQuestion('High protein vegetarian diet plan')">High protein veg
+            diet</button>
+          <button class="suggestion-chip" onclick="askQuestion('Weight loss meal plan under 1500 calories')">Weight
+            loss plan</button>
+          <button class="suggestion-chip" onclick="askQuestion('What should I eat before gym?')">Pre-workout
+            meals</button>
+          <button class="suggestion-chip" onclick="askQuestion('Indian diet plan for muscle gain')">Indian muscle
+            diet</button>
+          <button class="suggestion-chip" onclick="askQuestion('How much water should I drink daily?')">Water
+            intake</button>
+          <button class="suggestion-chip" onclick="askQuestion('Best foods for glowing skin')">Skin health
+            foods</button>
+          <button class="suggestion-chip" onclick="askQuestion('Keto diet benefits and risks')">Keto guide</button>
+          <button class="suggestion-chip" onclick="askQuestion('Post workout recovery meal ideas')">Post-workout
+            meals</button>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div id="chatMessages" style="display: none; padding-bottom: 20px;"></div>
+
+    </div>
+  </section>
+
+  <!-- ━━━ CHAT INPUT BAR ━━━ -->
+  <div
+    style="position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border); padding: 12px 0; z-index: 9998;">
+    <div class="container" style="max-width: 800px;">
+      <div class="d-flex gap-2 align-items-center">
+        <button class="voice-btn" id="voiceChatBtn" title="Voice Input">
+          <i class="bi bi-mic-fill"></i>
+        </button>
+        <input type="text" id="chatInput" class="form-control-dark flex-grow-1"
+          placeholder="Ask me anything about nutrition..."
+          style="border-radius: var(--radius-full); padding: 14px 24px;">
+        <button class="btn btn-neon rounded-pill px-4" id="sendBtn">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer-dark" id="mainFooter"></footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="location.js"></script>
+  <script src="grocery.js"></script>
+  <script src="shared.js"></script>
+  <script src="api-client.js"></script>
+
+  <script>
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatMessages = document.getElementById('chatMessages');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+
+    let userLocationData = null;
+    let chatHistory = [];
+
+    /* ——— Location Detection ——— */
+    (async function () {
+      try {
+        const loc = await GoLocation.detect();
+        if (loc && loc.city !== 'Unknown') {
+          userLocationData = loc;
+          document.getElementById('aiLocationBadge').style.display = 'block';
+          document.getElementById('aiLocLabel').textContent = `${loc.city}, ${loc.country}`;
+        }
+      } catch (e) { }
+    })();
+
+    /* ——— Voice Input ——— */
+    const voiceBtn = document.getElementById('voiceChatBtn');
+    const recognition = window.initVoiceSearch ? window.initVoiceSearch(chatInput, (text) => {
+      voiceBtn.classList.remove('listening');
+      sendMessage(text);
+    }) : null;
+
+    if (voiceBtn && recognition) {
+      voiceBtn.addEventListener('click', () => {
+        voiceBtn.classList.toggle('listening');
+        if (voiceBtn.classList.contains('listening')) {
+          recognition.start();
+          window.showToast?.('Listening...', 'info');
+        } else {
+          recognition.stop();
+        }
+      });
+      recognition.onend = () => voiceBtn.classList.remove('listening');
+    }
+
+    /* ——— Knowledge Base — 25+ Topics ——— */
+    const KNOWLEDGE = {
+      'protein': {
+        title: 'High Protein Guide',
+        content: `**Daily protein needs:** 1.6-2.2g per kg of body weight for muscle building.\n\n**Top protein sources:**`,
+        table: [
+          ['Food', 'Protein/100g', 'Calories'],
+          ['Chicken Breast', '31g', '165 kcal'],
+          ['Eggs (2 large)', '13g', '155 kcal'],
+          ['Greek Yogurt', '10g', '59 kcal'],
+          ['Paneer', '18g', '265 kcal'],
+          ['Lentils (cooked)', '9g', '116 kcal'],
+          ['Tofu', '8g', '76 kcal'],
+          ['Whey Protein', '25g', '120 kcal']
+        ]
+      },
+      'weight loss': {
+        title: 'Weight Loss Strategy',
+        content: `**Key principle:** Create a 500 kcal deficit for ~0.5kg/week loss.\n\n**Daily targets:**\n• Protein: 2g/kg body weight (preserves muscle)\n• Fiber: 25-30g (keeps you full)\n• Water: 3-4L/day\n\n**Best foods:** Lean proteins, vegetables, whole grains, berries\n**Avoid:** Sugary drinks, processed foods, excessive carbs at night`,
+        mealPlan: true
+      },
+      'keto': {
+        title: 'Keto Diet Guide',
+        content: `**Macro split:** 70% fat, 25% protein, 5% carbs (~20-50g carbs/day)\n\n**Allowed:** Meat, fish, eggs, butter, nuts, avocado, low-carb veggies\n**Avoid:** Bread, pasta, rice, sugar, fruit (except berries)\n\n**Benefits:** Rapid weight loss, reduced appetite, stable blood sugar\n**Risks:** Keto flu (first week), nutrient deficiency risk, not suitable for diabetes type 1`
+      },
+      'indian': {
+        title: 'Indian Diet Plan',
+        content: `**Indian diets are naturally rich in fiber and plant protein.**`,
+        mealPlanRegional: 'India'
+      },
+      'water': {
+        title: 'Hydration Guide',
+        content: `**Daily water needs:** ~35ml per kg body weight\n\nFor a 70kg person: ~2.5L/day (more if active)\n\n**Signs of dehydration:** Dark urine, headache, fatigue, dry skin\n\n**Tips:**\n• Drink a glass upon waking\n• Carry a water bottle always\n• Eat water-rich foods (cucumber, watermelon)\n• Drink before you feel thirsty`
+      },
+      'pre workout': {
+        title: 'Pre-Workout Nutrition',
+        content: `**Eat 1-2 hours before training:**\n\n**Ideal pre-workout meals:**\n• Banana + peanut butter toast\n• Oats + fruit\n• Rice cakes + honey\n• Greek yogurt + granola\n\n**Key macros:** High carbs, moderate protein, low fat\n**Caffeine:** 200mg (1 cup coffee) 30 min before can boost performance`
+      },
+      'post workout': {
+        title: 'Post-Workout Recovery',
+        content: `**Eat within 30-60 minutes after training:**\n\n**Ideal post-workout meals:**\n• Protein shake + banana\n• Chicken + rice + veggies\n• Greek yogurt + berries + honey\n• Eggs + toast + avocado\n\n**Key:** 20-40g protein + fast carbs for recovery and glycogen replenishment.`
+      },
+      'muscle gain': {
+        title: 'Muscle Building Diet',
+        content: `**Key principles:**\n• Calorie surplus of 300-500 kcal/day\n• Protein: 2g/kg body weight\n• Train 4-6 days/week with progressive overload\n\n**Best foods:** Chicken, eggs, rice, oats, sweet potato, milk, nuts`,
+        mealPlan: true
+      },
+      'intermittent fasting': {
+        title: 'Intermittent Fasting',
+        content: `**Popular methods:**\n• 16:8 — Eat within 8-hour window (most popular)\n• 5:2 — Normal eating 5 days, 500 kcal on 2 days\n• OMAD — One meal a day\n\n**Benefits:** Fat loss, improved insulin sensitivity, autophagy\n**During fasting:** Water, black coffee, green tea only\n\n**Not recommended for:** Pregnant women, underweight individuals, diabetics`
+      },
+      'skin': {
+        title: 'Foods for Healthy Skin',
+        content: `**Skin superfoods:**\n• Berries — antioxidants, vitamin C\n• Avocado — healthy fats, vitamin E\n• Sweet potato — beta-carotene\n• Salmon — omega-3 fatty acids\n• Spinach — iron, folate\n• Nuts — vitamin E, zinc\n• Green tea — polyphenols\n\n**Avoid:** Excess sugar, dairy (for some), processed foods, alcohol`
+      },
+      'bulking': {
+        title: 'Bulking Guide',
+        content: `**Calorie surplus:** +300-500 kcal above TDEE\n\n**Focus on:** Protein (2g/kg), complex carbs, healthy fats\n\n**Clean bulk foods:** Chicken, rice, oats, eggs, pasta, sweet potato, nuts, olive oil, avocado, milk, banana`,
+        mealPlan: true
+      },
+      'vegan': {
+        title: 'Vegan Nutrition',
+        content: `**Key nutrients to watch:**\n• Vitamin B12 — supplement required\n• Iron — lentils, spinach, tofu\n• Omega-3 — flaxseed, walnuts, algae oil\n• Calcium — fortified milk, broccoli, almonds\n• Protein — tofu, tempeh, legumes, seitan\n\n**Complete protein combos:** Rice + beans, hummus + pita, oats + soy milk`
+      },
+      'diabetes': {
+        title: 'Diabetic-Friendly Diet',
+        content: `**Key principles:**\n• Low glycemic index foods\n• Consistent meal timing\n• Balance carbs with protein and fiber\n\n**Good foods:** Whole grains, legumes, non-starchy veggies, lean protein, nuts\n**Limit:** White bread, sugary drinks, white rice, potatoes\n\n**Tip:** Pair carbs with protein to slow blood sugar spikes.`
+      },
+      'sleep': {
+        title: 'Foods for Better Sleep',
+        content: `**Sleep-promoting foods:**\n• Tart cherries — natural melatonin\n• Almonds — magnesium\n• Banana — tryptophan + magnesium\n• Warm milk — calcium + tryptophan\n• Chamomile tea — calming\n• Kiwi — serotonin\n\n**Avoid before bed:** Caffeine (6hr before), heavy meals, alcohol, spicy food`
+      },
+      'immunity': {
+        title: 'Immune-Boosting Foods',
+        content: `**Top immune boosters:**\n• Citrus fruits — vitamin C\n• Garlic — allicin (anti-microbial)\n• Ginger — anti-inflammatory\n• Turmeric — curcumin\n• Yogurt — probiotics\n• Green tea — antioxidants\n• Almonds — vitamin E\n• Spinach — vitamin C, beta-carotene, antioxidants`
+      },
+      'grocery': {
+        title: 'Smart Grocery List',
+        content: `Here's a healthy grocery checklist based on your potential needs:`,
+        groceryList: true
+      },
+      'calorie': {
+        title: 'Calorie Calculator',
+        content: `**To calculate your daily calories:**\n\n1. Find your BMR (Mifflin-St Jeor):\n   • Male: 10×weight(kg) + 6.25×height(cm) - 5×age + 5\n   • Female: 10×weight(kg) + 6.25×height(cm) - 5×age - 161\n\n2. Multiply by activity factor:\n   • Sedentary: ×1.2\n   • Light active: ×1.375\n   • Moderate: ×1.55\n   • Very active: ×1.725\n\n**Try our [Meal Planner](Mealplanner.html) for auto-calculation!**`
+      },
+      'mediterranean': {
+        title: 'Mediterranean Diet',
+        content: `**Considered the world's healthiest diet.**\n\n**Core foods:** Olive oil, fish, legumes, whole grains, vegetables, fruits, nuts\n\n**Benefits:** Heart health, longevity, brain function, reduced inflammation\n\n**Daily:** Vegetables, fruits, whole grains, olive oil\n**Weekly:** Fish, poultry, beans, eggs\n**Moderate:** Dairy, red wine\n**Rare:** Red meat, sweets`,
+        mealPlanRegional: 'Mediterranean'
+      }
+    };
+
+    /* ——— Find Best Knowledge Match ——— */
+    function findKnowledge(query) {
+      const q = query.toLowerCase();
+      let bestMatch = null;
+      let bestScore = 0;
+
+      for (const [key, value] of Object.entries(KNOWLEDGE)) {
+        const keywords = key.split(' ');
+        let score = 0;
+        keywords.forEach(kw => { if (q.includes(kw)) score += 2; });
+        // Check title words too
+        const titleWords = value.title.toLowerCase().replace(/[^\w\s]/g, '').split(' ');
+        titleWords.forEach(tw => { if (q.includes(tw) && tw.length > 2) score++; });
+
+        if (score > bestScore) { bestScore = score; bestMatch = value; }
+      }
+      return bestScore >= 2 ? bestMatch : null;
+    }
+
+    /* ——— Format AI Response ——— */
+    function formatResponse(knowledge) {
+      let html = `<div class="fw-bold mb-2" style="font-size: 1.1rem;">${knowledge.title}</div>`;
+      html += `<div style="white-space: pre-line; line-height: 1.7;">${knowledge.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>`;
+
+      // Table
+      if (knowledge.table) {
+        html += `<div class="table-responsive mt-3"><table style="width: 100%; border-collapse: collapse;">`;
+        knowledge.table.forEach((row, i) => {
+          const tag = i === 0 ? 'th' : 'td';
+          const style = i === 0 ? 'border-bottom: 1px solid var(--glass-border); padding: 8px; color: var(--neon-green); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;' : 'padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem;';
+          html += `<tr>${row.map(cell => `<${tag} style="${style}">${cell}</${tag}>`).join('')}</tr>`;
+        });
+        html += `</table></div>`;
+      }
+
+      // Regional meal plan
+      if (knowledge.mealPlanRegional) {
+        const country = knowledge.mealPlanRegional === 'India' && userLocationData?.country === 'India' ? userLocationData.country : knowledge.mealPlanRegional;
+        const plan = GoLocation.getLocationMealPlan(country);
+        html += `<div class="mt-3 p-3" style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm);">`;
+        html += `<div class="overline mb-2" style="font-size: 0.6rem;">Sample ${plan.cuisine} Day</div>`;
+        html += `<div style="font-size: 0.85rem;"><strong style="color: var(--neon-green);">Breakfast:</strong> ${plan.breakfast[0]}<br>`;
+        html += `<strong style="color: var(--neon-green);">Lunch:</strong> ${plan.lunch[0]}<br>`;
+        html += `<strong style="color: var(--neon-green);">Dinner:</strong> ${plan.dinner[0]}<br>`;
+        html += `<strong style="color: var(--neon-green);">Snack:</strong> ${plan.snacks[0]}</div></div>`;
+      }
+
+      // Generic meal plan
+      if (knowledge.mealPlan && !knowledge.mealPlanRegional) {
+        const country = userLocationData?.country || 'default';
+        const plan = GoLocation.getLocationMealPlan(country);
+        html += `<div class="mt-3 p-3" style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm);">`;
+        html += `<div class="overline mb-2" style="font-size: 0.6rem;">Sample Day (${plan.cuisine})</div>`;
+        html += `<div style="font-size: 0.85rem;"><strong style="color: var(--neon-green);">Breakfast:</strong> ${plan.breakfast[0]}<br>`;
+        html += `<strong style="color: var(--neon-green);">Lunch:</strong> ${plan.lunch[0]}<br>`;
+        html += `<strong style="color: var(--neon-green);">Dinner:</strong> ${plan.dinner[0]}<br>`;
+        html += `<strong style="color: var(--neon-green);">Snack:</strong> ${plan.snacks[0]}</div></div>`;
+      }
+
+      // Grocery list
+      if (knowledge.groceryList) {
+        const country = userLocationData?.country || 'default';
+        const foods = GoLocation.getRegionalFoods(country);
+        html += `<div class="mt-3 d-flex flex-wrap gap-2">`;
+        [...foods.proteins.slice(0, 4), ...foods.staples.slice(0, 3), ...foods.vegetables.slice(0, 3)].forEach(item => {
+          html += `<span class="badge-neon" style="padding: 4px 12px; font-size: 0.75rem;">${item}</span>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `<div class="mt-3 d-flex flex-wrap gap-2">
+        <a href="Mealplanner.html" class="badge-neon" style="padding: 6px 14px; font-size: 0.75rem; text-decoration: none;">Open Meal Planner</a>
+        <a href="recipes.html" class="badge-orange" style="padding: 6px 14px; font-size: 0.75rem; text-decoration: none;">Browse Recipes</a>
+      </div>`;
+
+      return html;
+    }
+
+    /* ——— Send Message ——— */
+    function sendMessage(text) {
+      if (!text || !text.trim()) return;
+      const query = text.trim();
+      chatInput.value = '';
+
+      // Hide welcome, show chat
+      welcomeScreen.style.display = 'none';
+      chatMessages.style.display = 'block';
+
+      // User bubble
+      addBubble(query, 'user');
+      chatHistory.push({ role: 'user', text: query });
+
+      // Typing indicator
+      const typingId = showTyping();
+
+      setTimeout(() => {
+        removeTyping(typingId);
+
+        const knowledge = findKnowledge(query);
+        if (knowledge) {
+          addBubble(formatResponse(knowledge), 'ai', true);
+        } else {
+          // Generic response with location-aware fallback
+          let fallback = `I'd love to help with "${query}"! Here are some things I can assist with:\n\n`;
+          fallback += `• **Meal Plans** — "Weight loss plan", "Bulking diet", "Indian diet"\n`;
+          fallback += `• **Nutrition Info** — "Protein sources", "Keto guide", "Calorie calculator"\n`;
+          fallback += `• **Health Goals** — "Foods for skin", "Sleep foods", "Immunity boosters"\n`;
+          fallback += `• **Specific Diets** — "Vegan nutrition", "Mediterranean diet", "Intermittent fasting"\n`;
+
+          if (userLocationData && userLocationData.country !== 'Unknown') {
+            const foods = GoLocation.getRegionalFoods(userLocationData.country);
+            fallback += `\nI have regional diet data for **${userLocationData.country}** (${foods.cuisine} cuisine) ready for you!`;
+          }
+
+          addBubble(fallback.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'), 'ai', true);
+        }
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 800 + Math.random() * 600);
+    }
+
+    function askQuestion(text) {
+      chatInput.value = text;
+      sendMessage(text);
+    }
+
+    /* ——— Chat UI Helpers ——— */
+    function addBubble(content, type, isHtml = false) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `d-flex ${type === 'user' ? 'justify-content-end' : 'justify-content-start'} mb-3`;
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${type}`;
+      if (isHtml) { bubble.innerHTML = content; } else { bubble.textContent = content; }
+      wrapper.appendChild(bubble);
+      chatMessages.appendChild(wrapper);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+      const id = 'typing-' + Date.now();
+      const wrapper = document.createElement('div');
+      wrapper.className = 'd-flex justify-content-start mb-3';
+      wrapper.id = id;
+      wrapper.innerHTML = `<div class="chat-bubble ai"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+      chatMessages.appendChild(wrapper);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return id;
+    }
+
+    function removeTyping(id) {
+      document.getElementById(id)?.remove();
+    }
+
+    /* ——— Event Listeners ——— */
+    sendBtn.addEventListener('click', () => sendMessage(chatInput.value));
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage(chatInput.value);
+    });
+  </script>
+
+</body>
+
+</html>

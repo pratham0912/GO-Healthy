@@ -1,0 +1,34 @@
+{
+  "name": "gohealthy-backend",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Go Healthy — Node.js + Express + MongoDB Backend (ESM)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node seeds/blogSeeds.js",
+    "seed:recipes": "node seeds/seedRecipes.js"
+  },
+  "keywords": [
+    "health",
+    "nutrition",
+    "backend"
+  ],
+  "author": "GoHealthy",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.0.1",
+    "google-auth-library": "^9.11.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.4",
+    "uuid": "^13.0.0"
+  }
+}
