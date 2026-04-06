@@ -6,7 +6,9 @@ const API = (() => {
     'use strict';
 
     // ─── Config ─────────────────────────────
-    const BASE_URL = 'http://127.0.0.1:5000/api';
+    // Dynamically pick the API base: use localhost in dev, same-origin /api in production
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const BASE_URL = isLocal ? 'http://127.0.0.1:5000/api' : '/api';
     const TOKEN_KEY = 'gohealthy_token';
     const USER_KEY = 'gohealthy_user';
 
