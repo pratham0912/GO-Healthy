@@ -6,6 +6,8 @@ backend/node_modules/
 .env
 backend/.env
 
+# Keep backend/uploads tracked — images are seeded and served as static assets
+
 # Logs
 *.log
 npm-debug.log*
@@ -20,3 +22,6 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# Render
+.render/

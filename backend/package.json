@@ -10,6 +10,9 @@
     "seed": "node seeds/blogSeeds.js",
     "seed:recipes": "node seeds/seedRecipes.js"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [
     "health",
     "nutrition",
