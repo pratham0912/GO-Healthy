@@ -11,6 +11,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="demo.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> -->
 </head>
 
 <body>
@@ -66,25 +68,119 @@
                 Your personal AI nutritionist — calculates macros, builds plans, and adapts to your region.
             </p>
             <!-- Progress Steps -->
-            <div class="d-flex justify-content-center gap-3 mb-5 reveal delay-3" id="progressBar">
-                <div class="step-indicator active" data-step="0"><span>1</span><small>Location</small></div>
+            <div class="d-flex justify-content-center gap-3 mb-5 reveal delay-3 flex-wrap" id="progressBar">
+                <div class="step-indicator active" data-step="0"><span>1</span><small>Preferences</small></div>
                 <div class="step-line-h"></div>
-                <div class="step-indicator" data-step="1"><span>2</span><small>Goal</small></div>
+                <div class="step-indicator" data-step="1"><span>2</span><small>Location</small></div>
                 <div class="step-line-h"></div>
-                <div class="step-indicator" data-step="2"><span>3</span><small>Stats</small></div>
+                <div class="step-indicator" data-step="2"><span>3</span><small>Goal</small></div>
                 <div class="step-line-h"></div>
-                <div class="step-indicator" data-step="3"><span>4</span><small>Results</small></div>
+                <div class="step-indicator" data-step="3"><span>4</span><small>Stats</small></div>
                 <div class="step-line-h"></div>
-                <div class="step-indicator" data-step="4"><span>5</span><small>Plan</small></div>
+                <div class="step-indicator" data-step="4"><span>5</span><small>Results</small></div>
+                <div class="step-line-h"></div>
+                <div class="step-indicator" data-step="5"><span>6</span><small>Plan</small></div>
             </div>
         </div>
     </section>
 
+    <!-- ━━━ PLAN STATUS BAR ━━━ -->
+    <div class="container mb-3">
+        <div class="plan-status-bar" id="planStatusBar">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="plan-badge" id="planBadge">FREE TRIAL</span>
+                <span style="color: var(--text-secondary); font-size: 0.85rem;" id="planUsageText">1 free plan available</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="plan-usage-bar" id="planUsageBarWrap" style="display: none;">
+                    <div class="plan-usage-fill" id="planUsageFill" style="width: 0%;"></div>
+                </div>
+                <button class="btn btn-sm btn-upgrade" id="upgradeBtn" onclick="openPricingModal()">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Upgrade to Pro
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ━━━ WIZARD STEPS ━━━ -->
     <section class="container pb-5">
 
-        <!-- STEP 0: Location Detection -->
+        <!-- STEP 0: Food Preferences (NEW) -->
         <div class="wizard-step active" id="step0">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="text-center mb-4 reveal active">
+                        <h3 class="fw-bold mb-2">Tell Us What You <span class="text-gradient">Love</span></h3>
+                        <p style="color: var(--text-secondary);">Help our AI create the perfect meal plan by sharing your food preferences.</p>
+                    </div>
+
+                    <!-- Likes -->
+                    <div class="glass-card p-4 mb-3 reveal active">
+                        <div class="overline mb-2" style="color: var(--neon-green);"><i class="bi bi-heart-fill me-1"></i>Foods You Love</div>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Type a food and press Enter to add</p>
+                        <div class="tag-input-wrap" id="likesWrap">
+                            <div class="tags-container" id="likesTags"></div>
+                            <input type="text" class="tag-input" id="likesInput" placeholder="e.g. paneer, chicken, oats..."
+                                onkeydown="handleTagInput(event, 'likes')">
+                        </div>
+                        <div class="mt-2 d-flex flex-wrap gap-1">
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Paneer')">+ Paneer</button>
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Chicken')">+ Chicken</button>
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Rice')">+ Rice</button>
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Eggs')">+ Eggs</button>
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Dal')">+ Dal</button>
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Salmon')">+ Salmon</button>
+                            <button class="btn btn-sm quick-tag" onclick="addQuickTag('likes','Oats')">+ Oats</button>
+                        </div>
+                    </div>
+
+                    <!-- Dislikes -->
+                    <div class="glass-card p-4 mb-3 reveal active">
+                        <div class="overline mb-2" style="color: var(--soft-orange);"><i class="bi bi-x-circle-fill me-1"></i>Foods You Dislike</div>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">These will never appear in your plan</p>
+                        <div class="tag-input-wrap" id="dislikesWrap">
+                            <div class="tags-container" id="dislikesTags"></div>
+                            <input type="text" class="tag-input" id="dislikesInput" placeholder="e.g. bitter gourd, mushroom..."
+                                onkeydown="handleTagInput(event, 'dislikes')">
+                        </div>
+                    </div>
+
+                    <!-- Allergies -->
+                    <div class="glass-card p-4 mb-3 reveal active">
+                        <div class="overline mb-2" style="color: #ff5252;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Allergies & Restrictions</div>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <label class="allergy-chip"><input type="checkbox" value="nuts" class="allergy-check"> 🥜 Nuts</label>
+                            <label class="allergy-chip"><input type="checkbox" value="dairy" class="allergy-check"> 🥛 Dairy</label>
+                            <label class="allergy-chip"><input type="checkbox" value="gluten" class="allergy-check"> 🌾 Gluten</label>
+                            <label class="allergy-chip"><input type="checkbox" value="seafood" class="allergy-check"> 🐟 Seafood</label>
+                            <label class="allergy-chip"><input type="checkbox" value="eggs" class="allergy-check"> 🥚 Eggs</label>
+                            <label class="allergy-chip"><input type="checkbox" value="soy" class="allergy-check"> 🫘 Soy</label>
+                        </div>
+                    </div>
+
+                    <!-- Days to Plan -->
+                    <div class="glass-card p-4 mb-3 reveal active">
+                        <div class="overline mb-2"><i class="bi bi-calendar-week me-1"></i>Plan Duration</div>
+                        <div class="d-flex gap-2">
+                            <button class="btn duration-btn active" onclick="selectDuration(this, 3)">3 Days</button>
+                            <button class="btn duration-btn" onclick="selectDuration(this, 5)">5 Days</button>
+                            <button class="btn duration-btn" onclick="selectDuration(this, 7)">7 Days</button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button class="btn btn-neon px-5 py-2" onclick="goToStep(1)">
+                            Next: Set Location <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                        <br>
+                        <button class="btn btn-ghost mt-2" onclick="goToStep(2)">Skip to Goal →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 1: Location Detection -->
+        <div class="wizard-step" id="step1">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="text-center mb-4 reveal active">
@@ -140,8 +236,8 @@
             </div>
         </div>
 
-        <!-- STEP 1: Goal Selection -->
-        <div class="wizard-step" id="step1">
+        <!-- STEP 2: Goal Selection -->
+        <div class="wizard-step" id="step2">
             <div class="text-center mb-4 reveal active">
                 <h3 class="fw-bold mb-2">What's Your Goal?</h3>
                 <p style="color: var(--text-secondary);">Select your primary fitness goal to customize your macro split.
@@ -178,13 +274,13 @@
                 </div>
             </div>
             <div class="text-center mt-4">
-                <button class="btn btn-ghost me-2" onclick="goToStep(0)"><i class="bi bi-arrow-left me-1"></i>
+                <button class="btn btn-ghost me-2" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i>
                     Back</button>
             </div>
         </div>
 
-        <!-- STEP 2: User Stats -->
-        <div class="wizard-step" id="step2">
+        <!-- STEP 3: User Stats -->
+        <div class="wizard-step" id="step3">
             <div class="row justify-content-center">
                 <div class="col-lg-7">
                     <div class="text-center mb-4 reveal active">
@@ -238,7 +334,7 @@
                             </div>
                         </div>
                         <div class="text-center mt-4">
-                            <button class="btn btn-ghost me-2" onclick="goToStep(1)"><i
+                            <button class="btn btn-ghost me-2" onclick="goToStep(2)"><i
                                     class="bi bi-arrow-left me-1"></i> Back</button>
                             <button class="btn btn-neon" onclick="calculateAndShowResults()">
                                 <i class="bi bi-calculator me-1"></i> Calculate My Plan
@@ -249,8 +345,8 @@
             </div>
         </div>
 
-        <!-- STEP 3: Results -->
-        <div class="wizard-step" id="step3">
+        <!-- STEP 4: Results -->
+        <div class="wizard-step" id="step4">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     <div class="text-center mb-4 reveal active">
@@ -349,21 +445,21 @@
                     </div>
 
                     <div class="text-center">
-                        <button class="btn btn-ghost me-2" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i>
+                        <button class="btn btn-ghost me-2" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i>
                             Back</button>
                         <button class="btn btn-outline-neon me-2" onclick="setDashboardTarget()" id="setTargetBtn">
                             <i class="bi bi-bullseye me-1"></i> Set Dashboard Target
                         </button>
-                        <button class="btn btn-neon" onclick="generateWeeklyPlan()">
-                            <i class="bi bi-calendar-week me-1"></i> Generate Weekly Plan
+                        <button class="btn btn-neon" onclick="generateAIPlan()">
+                            <i class="bi bi-stars me-1"></i> Generate AI Meal Plan
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- STEP 4: Weekly Plan + Grocery -->
-        <div class="wizard-step" id="step4">
+        <!-- STEP 5: Weekly Plan + Grocery -->
+        <div class="wizard-step" id="step5">
             <div class="text-center mb-4 reveal active">
                 <h3 class="fw-bold mb-2">Your Weekly Meal Plan</h3>
                 <p style="color: var(--text-secondary);" id="planSubtitle">Auto-generated based on your goals and
@@ -375,11 +471,14 @@
                 <button class="btn btn-pdf" onclick="downloadPlanPDF()">
                     <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
                 </button>
-                <button class="btn btn-ghost" onclick="goToStep(3)">
+                <button class="btn btn-ghost" onclick="goToStep(4)">
                     <i class="bi bi-arrow-left me-1"></i> Back to Results
                 </button>
-                <button class="btn btn-neon" onclick="generateWeeklyPlan()">
+                <button class="btn btn-neon" onclick="generateAIPlan()">
                     <i class="bi bi-arrow-clockwise me-1"></i> Regenerate
+                </button>
+                <button class="btn btn-save-plan" onclick="saveCurrentPlan()" id="savePlanBtn">
+                    <i class="bi bi-bookmark-plus me-1"></i> Save Plan
                 </button>
             </div>
 
@@ -394,9 +493,412 @@
 
     </section>
 
+    <!-- ━━━ RECIPE POPUP MODAL ━━━ -->
+    <div class="modal fade" id="recipeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); overflow: hidden;">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <span id="recipeEmoji" style="font-size: 2rem;"></span>
+                        <h5 class="modal-title fw-bold d-inline ms-2" id="recipeName" style="color: var(--text-primary);"></h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <!-- Macros Bar -->
+                    <div class="d-flex gap-3 mb-3 flex-wrap" id="recipeMacros"></div>
+
+                    <hr style="border-color: var(--glass-border); margin: 1rem 0;">
+
+                    <!-- Action Links -->
+                    <a id="recipeYouTube" href="#" target="_blank" class="recipe-action-btn youtube-btn">
+                        <i class="bi bi-youtube"></i>
+                        <span>Watch Recipe on YouTube</span>
+                        <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <a id="recipeZomato" href="#" target="_blank" class="recipe-action-btn zomato-btn">
+                        <span style="font-size: 1.1rem;">🛵</span>
+                        <span>Order on Zomato</span>
+                        <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <a id="recipeSwiggy" href="#" target="_blank" class="recipe-action-btn swiggy-btn">
+                        <span style="font-size: 1.1rem;">🟠</span>
+                        <span>Order on Swiggy</span>
+                        <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ━━━ PRICING MODAL ━━━ -->
+    <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 680px;">
+            <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); overflow: hidden;">
+                <div class="modal-header border-0 pb-0">
+                    <div class="text-center w-100 pt-2">
+                        <span style="font-size: 2.5rem;">👑</span>
+                        <h4 class="fw-bold mt-2 mb-1" style="color: var(--text-primary);">Upgrade to <span class="text-gradient">Pro</span></h4>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;" id="pricingSubtitle">Unlock unlimited AI meal planning power</p>
+                    </div>
+                    <button type="button" class="btn-close position-absolute" style="top: 16px; right: 16px;" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pb-4">
+
+                    <!-- Step 1: Choose Plan -->
+                    <div id="pricingStep1">
+                        <div class="row g-3 justify-content-center">
+                            <!-- Basic Plan -->
+                            <div class="col-sm-6">
+                                <div class="pricing-card">
+                                    <div class="pricing-card-header">
+                                        <span class="pricing-icon">🥗</span>
+                                        <h5 class="fw-bold mb-1">Basic</h5>
+                                        <div class="pricing-amount">₹1<span class="pricing-period">/purchase</span></div>
+                                    </div>
+                                    <ul class="pricing-features">
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> 2 meal plans per day</li>
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> AI-powered recipes</li>
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> Grocery lists</li>
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> PDF download</li>
+                                    </ul>
+                                    <button class="btn btn-pricing-buy w-100" onclick="checkoutWithRazorpay('basic', 1, 2)">
+                                        <i class="bi bi-credit-card me-1"></i> Pay ₹1 with Razorpay
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Pro Plan -->
+                            <div class="col-sm-6">
+                                <div class="pricing-card pricing-card-featured">
+                                    <div class="pricing-popular-tag">⚡ Most Popular</div>
+                                    <div class="pricing-card-header">
+                                        <span class="pricing-icon">🏆</span>
+                                        <h5 class="fw-bold mb-1">Pro</h5>
+                                        <div class="pricing-amount">₹1<span class="pricing-period">/purchase</span></div>
+                                    </div>
+                                    <ul class="pricing-features">
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> 5 meal plans per day</li>
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> AI-powered recipes</li>
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> Grocery lists</li>
+                                        <li><i class="bi bi-check-circle-fill text-success"></i> PDF download</li>
+                                        <li><i class="bi bi-star-fill" style="color: #f59e0b;"></i> Priority support</li>
+                                    </ul>
+                                    <button class="btn btn-pricing-buy-pro w-100" onclick="checkoutWithRazorpay('pro', 1, 5)">
+                                        <i class="bi bi-credit-card me-1"></i> Pay ₹1 with Razorpay
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: QR Code + Timer -->
+                    <div id="pricingStep2" style="display: none;">
+                        <div class="text-center">
+                            <button class="btn btn-sm btn-ghost mb-3" onclick="backToPlanSelection()" style="font-size: 0.82rem;">
+                                <i class="bi bi-arrow-left me-1"></i> Change Plan
+                            </button>
+                            <h5 class="fw-bold" style="color: var(--text-primary);">Scan & Pay <span id="qrAmountLabel" style="color: var(--neon-green);">₹39</span></h5>
+                            <p style="color: var(--text-muted); font-size: 0.82rem;">Scan with any UPI app (GPay, PhonePe, Paytm, etc.)</p>
+
+                            <!-- Timer -->
+                            <div class="qr-timer-wrap mb-3">
+                                <div class="qr-timer-ring">
+                                    <svg width="64" height="64" viewBox="0 0 64 64">
+                                        <circle cx="32" cy="32" r="28" stroke="var(--glass-border)" stroke-width="3" fill="none"/>
+                                        <circle cx="32" cy="32" r="28" stroke="var(--neon-green)" stroke-width="3" fill="none"
+                                            stroke-dasharray="175.93" stroke-dashoffset="0" stroke-linecap="round"
+                                            id="qrTimerCircle" style="transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 1s linear;"/>
+                                    </svg>
+                                    <span class="qr-timer-text" id="qrTimerText">5:00</span>
+                                </div>
+                                <small style="color: var(--text-muted);">QR valid for <span id="qrTimerLabel">5 minutes</span></small>
+                            </div>
+
+                            <!-- Dynamic QR Code -->
+                            <div class="qr-code-container mx-auto mb-3">
+                                <div id="qrCodeCanvas" style="display:flex; justify-content:center;"></div>
+                            </div>
+
+                            <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 16px;">UPI ID: <strong style="color: var(--text-primary);" id="qrUPIDisplay">your-upi@bank</strong></p>
+
+                            <button class="btn btn-neon w-100" onclick="completePayment()" id="paymentDoneBtn">
+                                <i class="bi bi-check2-circle me-1"></i> I've Completed Payment
+                            </button>
+                            <p class="mt-2" style="color: var(--text-muted); font-size: 0.72rem;">
+                                <i class="bi bi-info-circle me-1"></i>Click after payment is successful in your UPI app
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Success Animation -->
+                    <div id="pricingStep3" style="display: none;">
+                        <div class="text-center py-4">
+                            <div class="payment-success-anim" id="paySuccessAnim">
+                                <svg width="120" height="120" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="50" stroke="var(--neon-green)" stroke-width="4" fill="none"
+                                        stroke-dasharray="314.16" stroke-dashoffset="314.16"
+                                        id="successCircle" style="transform: rotate(-90deg); transform-origin: center;"/>
+                                    <polyline points="38,62 53,77 82,48" stroke="var(--neon-green)" stroke-width="5" fill="none"
+                                        stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-dasharray="70" stroke-dashoffset="70"
+                                        id="successCheck"/>
+                                </svg>
+                            </div>
+                            <h4 class="fw-bold mt-3" style="color: var(--neon-green);" id="paySuccessTitle">Payment Successful!</h4>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;" id="paySuccessMsg">Your plan is being activated...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         .wizard-step {
             display: none;
+        }
+
+        /* ─── Plan Status Bar ─── */
+        .plan-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--glass-shadow);
+        }
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .plan-badge.badge-free {
+            background: var(--neon-green-dim);
+            color: var(--neon-green);
+            border: 1px solid rgba(40,167,69,0.3);
+        }
+        .plan-badge.badge-basic {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--electric-cyan);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        .plan-badge.badge-pro {
+            background: linear-gradient(135deg, rgba(124,77,255,0.15), rgba(255,193,7,0.12));
+            color: #b388ff;
+            border: 1px solid rgba(124,77,255,0.3);
+        }
+        .plan-usage-bar {
+            width: 80px;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--glass-border);
+            overflow: hidden;
+        }
+        .plan-usage-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--neon-green), var(--electric-cyan));
+            transition: width 0.5s ease;
+        }
+        .btn-upgrade {
+            background: linear-gradient(135deg, #7c4dff, #651fff);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            transition: all 0.3s;
+        }
+        .btn-upgrade:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(124,77,255,0.35);
+            color: white;
+        }
+
+        /* ─── Pricing Modal ─── */
+        .pay-method-tab {
+            background: var(--bg-primary) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--text-secondary) !important;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 8px 16px;
+            border-radius: 20px !important;
+            transition: all 0.2s;
+        }
+        .pay-method-tab.active {
+            background: var(--neon-green) !important;
+            border-color: var(--neon-green) !important;
+            color: #fff !important;
+        }
+        .pricing-card {
+            background: var(--bg-primary);
+            border: 2px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .pricing-card:hover {
+            border-color: var(--neon-green);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+        .pricing-card-featured {
+            border-color: #7c4dff;
+            box-shadow: 0 4px 20px rgba(124,77,255,0.15);
+        }
+        .pricing-card-featured:hover {
+            border-color: #7c4dff;
+            box-shadow: 0 8px 32px rgba(124,77,255,0.25);
+        }
+        .pricing-popular-tag {
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #7c4dff, #651fff);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 0 0 10px 10px;
+            letter-spacing: 0.05em;
+        }
+        .pricing-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .pricing-card-header h5 {
+            color: var(--text-primary);
+        }
+        .pricing-amount {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        .pricing-period {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+            text-align: left;
+        }
+        .pricing-features li {
+            padding: 5px 0;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-pricing-buy {
+            background: var(--neon-green);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+        }
+        .btn-pricing-buy:hover {
+            background: #1e7e34;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .btn-pricing-buy-pro {
+            background: linear-gradient(135deg, #7c4dff, #651fff);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+        }
+        .btn-pricing-buy-pro:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(124,77,255,0.35);
+            color: #fff;
+        }
+
+        .qr-code-container {
+            background: #ffffff;
+            border: 2px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            max-width: 260px;
+            margin: 0 auto;
+        }
+        .qr-timer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .qr-timer-ring {
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+        .qr-timer-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+        }
+        .qr-timer-text.expired {
+            color: #ff5252;
+            font-size: 0.7rem;
+        }
+
+        /* ─── Payment Success Animation ─── */
+        .payment-success-anim {
+            display: inline-block;
+        }
+        .payment-success-anim.animate #successCircle {
+            animation: drawCircle 0.6s ease forwards;
+        }
+        .payment-success-anim.animate #successCheck {
+            animation: drawCheck 0.4s 0.5s ease forwards;
+        }
+        @keyframes drawCircle {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+        .payment-success-anim.animate {
+            animation: successPulse 1.5s 0.9s ease infinite;
+        }
+        @keyframes successPulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(0,255,136,0.3)); }
+            50% { filter: drop-shadow(0 0 20px rgba(0,255,136,0.6)); }
         }
 
         .wizard-step.active {
@@ -470,6 +972,233 @@
             align-self: center;
             margin-top: -16px;
         }
+
+        /* ─── Tag Input System ─── */
+        .tag-input-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            min-height: 48px;
+            cursor: text;
+            transition: border-color 0.3s;
+        }
+        .tag-input-wrap:focus-within {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 0 3px var(--neon-green-glow);
+        }
+        .tags-container { display: contents; }
+        .food-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            animation: tagPop 0.3s ease;
+        }
+        .food-tag.like {
+            background: var(--neon-green-dim);
+            color: var(--neon-green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .food-tag.dislike {
+            background: rgba(255, 152, 0, 0.15);
+            color: var(--soft-orange);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+        .food-tag .remove-tag {
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .food-tag .remove-tag:hover { opacity: 1; }
+        .tag-input {
+            border: none;
+            background: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 120px;
+        }
+        .tag-input::placeholder { color: var(--text-muted); }
+        @keyframes tagPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* ─── Quick Tags ─── */
+        .quick-tag {
+            background: var(--bg-primary);
+            color: var(--text-muted);
+            border: 1px dashed var(--glass-border);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .quick-tag:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            background: var(--neon-green-dim);
+        }
+
+        /* ─── Allergy Chips ─── */
+        .allergy-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            user-select: none;
+        }
+        .allergy-chip input { display: none; }
+        .allergy-chip:has(input:checked) {
+            background: rgba(255, 82, 82, 0.15);
+            border-color: #ff5252;
+            color: #ff5252;
+            box-shadow: 0 0 12px rgba(255, 82, 82, 0.15);
+        }
+
+        /* ─── Duration Buttons ─── */
+        .duration-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .duration-btn.active, .duration-btn:hover {
+            background: var(--neon-green);
+            border-color: var(--neon-green);
+            color: var(--bg-primary);
+            box-shadow: 0 0 16px var(--neon-green-glow);
+        }
+
+        /* ─── Save Plan Button ─── */
+        .btn-save-plan {
+            background: linear-gradient(135deg, #7c4dff, #651fff);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-save-plan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(124, 77, 255, 0.4);
+            color: white;
+        }
+        .btn-save-plan:disabled {
+            opacity: 0.6;
+            transform: none;
+        }
+
+        /* ─── Clickable Meal Slot ─── */
+        .meal-slot-clickable {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.25s ease;
+        }
+        .meal-slot-clickable:hover {
+            background: var(--neon-green-dim);
+            border-color: rgba(0, 255, 136, 0.2);
+            transform: translateX(4px);
+        }
+        .meal-slot-clickable .meal-slot-label {
+            font-size: 0.7rem;
+        }
+
+        /* ─── Recipe Modal Action Buttons ─── */
+        .recipe-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            transition: all 0.25s;
+        }
+        .recipe-action-btn:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+        .youtube-btn {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff4444;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+        }
+        .youtube-btn:hover {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.15);
+        }
+        .zomato-btn {
+            background: rgba(239, 79, 95, 0.1);
+            color: #ef4f5f;
+            border: 1px solid rgba(239, 79, 95, 0.2);
+        }
+        .zomato-btn:hover {
+            background: rgba(239, 79, 95, 0.2);
+            color: #ef4f5f;
+            box-shadow: 0 4px 16px rgba(239, 79, 95, 0.15);
+        }
+        .swiggy-btn {
+            background: rgba(252, 128, 25, 0.1);
+            color: #fc8019;
+            border: 1px solid rgba(252, 128, 25, 0.2);
+        }
+        .swiggy-btn:hover {
+            background: rgba(252, 128, 25, 0.2);
+            color: #fc8019;
+            box-shadow: 0 4px 16px rgba(252, 128, 25, 0.15);
+        }
+        .recipe-macro-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--bg-primary);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+        }
+
+        /* ─── AI Loading Shimmer ─── */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .ai-loading-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--bg-primary), var(--neon-green), var(--electric-cyan), var(--bg-primary));
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
     </style>
 
     <footer class="footer-dark" id="mainFooter"></footer>
@@ -487,6 +1216,31 @@
         let calculatedCalories = 0;
         let calculatedMacros = {};
         let currentPlanMeals = [];
+        let currentAIPlan = null;
+        let planDays = 3;
+
+        // Preference Data
+        const userPrefs = { likes: [], dislikes: [] };
+
+        let recipeModal, pricingModal;
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = localStorage.getItem("isLoggedIn") || localStorage.getItem("gohealthy_token") || API.isLoggedIn();
+
+            if (!isLoggedIn) {
+                alert("Please login to use Meal Planner");
+                window.location.href = "sign_in.html";
+                return;
+            }
+
+            recipeModal = new bootstrap.Modal(document.getElementById('recipeModal'));
+            pricingModal = new bootstrap.Modal(document.getElementById('pricingModal'));
+            initPlanSystem();
+            // Auto-open pricing modal if ?upgrade=1 in URL
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('upgrade') === '1') {
+                setTimeout(() => openPricingModal(), 500);
+            }
+        });
 
         /* ——— Step Navigation ——— */
         function goToStep(n) {
@@ -500,7 +1254,49 @@
             window.scrollTo({ top: 200, behavior: 'smooth' });
         }
 
-        /* ——— Step 0: Location ——— */
+        /* ——— Step 0: Preferences ——— */
+        function handleTagInput(e, type) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const input = e.target;
+                const val = input.value.trim().replace(/,$/,'');
+                if (!val) return;
+                addTag(type, val);
+                input.value = '';
+            }
+        }
+
+        function addTag(type, value) {
+            const arr = userPrefs[type];
+            if (arr.includes(value)) return;
+            arr.push(value);
+            renderTags(type);
+        }
+
+        function removeTag(type, value) {
+            userPrefs[type] = userPrefs[type].filter(v => v !== value);
+            renderTags(type);
+        }
+
+        function renderTags(type) {
+            const container = document.getElementById(type + 'Tags');
+            const cls = type === 'likes' ? 'like' : 'dislike';
+            container.innerHTML = userPrefs[type].map(t =>
+                `<span class="food-tag ${cls}">${t} <span class="remove-tag" onclick="removeTag('${type}','${t}')">&times;</span></span>`
+            ).join('');
+        }
+
+        function addQuickTag(type, value) {
+            addTag(type, value);
+        }
+
+        function selectDuration(el, days) {
+            planDays = days;
+            document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        /* ——— Step 1: Location ——— */
         async function detectMyLocation() {
             const btn = document.getElementById('detectBtn');
             btn.innerHTML = `<div class="detect-icon"><div class="spinner-border spinner-border-sm" style="color: var(--neon-green);"></div></div>
@@ -525,7 +1321,7 @@
             // Auto-advance after a moment
             setTimeout(() => {
                 window.showToast?.(`Location set to ${loc.city}, ${loc.country}`, 'success');
-                goToStep(1);
+                goToStep(2);
             }, 1500);
         }
 
@@ -535,23 +1331,23 @@
             if (!country) { window.showToast?.('Please select a country', 'warning'); return; }
             userLocation = { city: city || 'Unknown', state: '', country, climate: 'temperate', currency: '' };
             window.showToast?.(`Location set to ${city || country}`, 'success');
-            goToStep(1);
+            goToStep(2);
         }
 
         function skipLocation() {
             userLocation = { city: 'Default', country: 'default', climate: 'temperate' };
-            goToStep(1);
+            goToStep(2);
         }
 
-        /* ——— Step 1: Goal ——— */
+        /* ——— Step 2: Goal ——— */
         function selectGoal(el, goal) {
             selectedGoal = goal;
             document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
             el.classList.add('selected');
-            setTimeout(() => goToStep(2), 300);
+            setTimeout(() => goToStep(3), 300);
         }
 
-        /* ——— Step 2→3: Calculate ——— */
+        /* ——— Step 3→4: Calculate ——— */
         function calculateAndShowResults() {
             const gender = document.getElementById('gender').value;
             const age = parseInt(document.getElementById('age').value) || 25;
@@ -570,17 +1366,17 @@
 
             const tdee = Math.round(bmr * activity);
 
-            // Step 1: Adjust calories based on goal
+            // Adjust calories based on goal
             let calories;
             switch (selectedGoal) {
-                case 'weightloss': calories = Math.round(tdee * 0.80); break;  // 20% deficit
-                case 'bulking': calories = Math.round(tdee * 1.15); break;  // 15% surplus
-                case 'muscle': calories = Math.round(tdee * 1.10); break;  // 10% surplus
-                default: calories = tdee;                            // maintenance
+                case 'weightloss': calories = Math.round(tdee * 0.80); break;
+                case 'bulking': calories = Math.round(tdee * 1.15); break;
+                case 'muscle': calories = Math.round(tdee * 1.10); break;
+                default: calories = tdee;
             }
             calculatedCalories = calories;
 
-            // Step 2 & 3: Calculate Macros (Smart Compromise: Weight-based Protein)
+            // Calculate Macros
             let proteinPerKg;
             switch (selectedGoal) {
                 case 'weightloss': proteinPerKg = 1.5; break;
@@ -589,29 +1385,25 @@
                 default: proteinPerKg = 1.1;
             }
 
-            // Diet overrides for protein
             if (dietPref === 'highprotein') proteinPerKg = 2.0;
             if (dietPref === 'vegan' || dietPref === 'vegetarian') proteinPerKg = 1.2;
 
             let proteinG = Math.round(weight * proteinPerKg);
             let fatsG = Math.round(weight * 0.7);
 
-            // Diet overrides for fats/carbs
             if (dietPref === 'keto') {
-                fatsG = Math.round((calories - (proteinG * 4 + 100)) / 9); // keto relies heavily on fat for remaining cals
+                fatsG = Math.round((calories - (proteinG * 4 + 100)) / 9);
             }
 
             let remainingCalories = calories - (proteinG * 4 + fatsG * 9);
             let carbsG = Math.max(0, Math.round(remainingCalories / 4));
 
             if (dietPref === 'keto') {
-                // Hard carb cap for keto
                 carbsG = Math.min(carbsG, 25);
             }
 
             calculatedMacros = { protein: proteinG, carbs: carbsG, fats: fatsG };
 
-            // Calculate percentages for the UI bars
             const actualTotalCalories = (proteinG * 4) + (carbsG * 4) + (fatsG * 9);
             const proteinPct = actualTotalCalories ? ((proteinG * 4) / actualTotalCalories) : 0;
             const carbsPct = actualTotalCalories ? ((carbsG * 4) / actualTotalCalories) : 0;
@@ -642,7 +1434,6 @@
                 tipEl.style.display = 'block';
                 document.getElementById('tipText').textContent = foods.dietTip;
 
-                // Seasonal produce
                 const seasonal = GoLocation.getSeasonalProduce(userLocation.country);
                 const grid = document.getElementById('seasonalGrid');
                 grid.innerHTML = `
@@ -658,7 +1449,7 @@
                 document.getElementById('seasonalSection').style.display = 'block';
             }
 
-            goToStep(3);
+            goToStep(4);
         }
 
         /* ——— Sync Target ——— */
@@ -715,85 +1506,184 @@
             });
         }
 
-        /* ——— Step 4: Generate Weekly Plan ——— */
-        async function generateWeeklyPlan() {
-            goToStep(4);
-            const grid = document.getElementById('planGrid');
-            grid.innerHTML = `<div class="col-12 text-center py-5"><div class="spinner-border" style="color: var(--neon-green);"></div><p class="mt-3" style="color: var(--text-muted);">Generating your personalized plan...</p></div>`;
+        /* ——— Step 5: Generate AI Meal Plan ——— */
+        async function generateAIPlan() {
+            // ━━━ PLAN LIMIT CHECK ━━━
+            if (!checkMealPlanLimit()) return;
 
-            const country = userLocation?.country || 'default';
+            goToStep(5);
+            const grid = document.getElementById('planGrid');
             const dietPref = document.getElementById('dietPref').value;
-            const regionalPlan = GoLocation.getLocationMealPlan(country, selectedGoal, dietPref);
+            const allergies = [...document.querySelectorAll('.allergy-check:checked')].map(c => c.value);
+
+            // Show AI loading state
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="ai-loading-bar mb-4 mx-auto" style="max-width: 300px;"></div>
+                    <div class="spinner-border mb-3" style="color: var(--neon-green); width: 3rem; height: 3rem;"></div>
+                    <h5 style="color: var(--text-primary);">🤖 AI is crafting your plan...</h5>
+                    <p style="color: var(--text-muted);">Analyzing your preferences and building a personalized meal plan</p>
+                    <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap">
+                        ${userPrefs.likes.length ? `<span class="recipe-macro-pill" style="color: var(--neon-green);">♥ ${userPrefs.likes.length} likes</span>` : ''}
+                        ${userPrefs.dislikes.length ? `<span class="recipe-macro-pill" style="color: var(--soft-orange);">✕ ${userPrefs.dislikes.length} dislikes</span>` : ''}
+                        ${allergies.length ? `<span class="recipe-macro-pill" style="color: #ff5252;">⚠ ${allergies.length} allergies</span>` : ''}
+                    </div>
+                </div>`;
 
             const dietLabels = { any: '', vegetarian: 'Vegetarian', vegan: 'Vegan', keto: 'Keto', highprotein: 'High Protein' };
             const dietLabel = dietLabels[dietPref] || '';
-            document.getElementById('planSubtitle').textContent = `Customized for ${regionalPlan.cuisine} cuisine${dietLabel ? ' · ' + dietLabel + ' diet' : ''} · ${calculatedCalories} kcal/day`;
-
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            document.getElementById('planSubtitle').textContent = `AI-Personalized${dietLabel ? ' · ' + dietLabel : ''} · ${calculatedCalories || 2000} kcal/day · ${planDays} days`;
 
             try {
-                // Fetch some recipes from API to mix with regional suggestions
-                const resp = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=');
-                const data = await resp.json();
-                const apiMeals = data.meals || [];
-
-                grid.innerHTML = '';
-                currentPlanMeals = [];
-
-                days.forEach((day, idx) => {
-                    const breakfast = regionalPlan.breakfast[idx % regionalPlan.breakfast.length];
-                    const lunch = regionalPlan.lunch[idx % regionalPlan.lunch.length];
-                    const dinner = regionalPlan.dinner[idx % regionalPlan.dinner.length];
-                    const snack = regionalPlan.snacks[idx % regionalPlan.snacks.length];
-
-                    currentPlanMeals.push(breakfast, lunch, dinner);
-
-                    const apiMeal = apiMeals[idx % apiMeals.length];
-                    const thumb = apiMeal ? apiMeal.strMealThumb + '/preview' : '';
-
-                    const col = document.createElement('div');
-                    col.className = 'col-md-6 col-lg-4';
-                    col.innerHTML = `
-                        <div class="planner-day">
-                            <div class="day-title">${day}</div>
-                            <div class="meal-slot">
-                                <div class="meal-slot-label">Breakfast</div>
-                                <div style="color: var(--text-primary); font-size: 0.9rem;">${breakfast}</div>
-                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.25)} kcal</small>
-                            </div>
-                            <div class="meal-slot">
-                                <div class="meal-slot-label">Lunch</div>
-                                <div style="color: var(--text-primary); font-size: 0.9rem;">${lunch}</div>
-                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.35)} kcal</small>
-                            </div>
-                            <div class="meal-slot">
-                                <div class="meal-slot-label">Dinner</div>
-                                <div style="color: var(--text-primary); font-size: 0.9rem;">${dinner}</div>
-                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.30)} kcal</small>
-                            </div>
-                            <div class="meal-slot">
-                                <div class="meal-slot-label">Snack</div>
-                                <div style="color: var(--text-primary); font-size: 0.9rem;">${snack}</div>
-                                <small style="color: var(--text-muted);">~${Math.round(calculatedCalories * 0.10)} kcal</small>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(col);
+                // Call AI endpoint
+                const result = await API.generateMealPlan({
+                    likes: userPrefs.likes,
+                    dislikes: userPrefs.dislikes,
+                    allergies: allergies,
+                    goal: selectedGoal || 'maintenance',
+                    dietType: dietPref || 'any',
+                    calorieTarget: calculatedCalories || 2000,
+                    numDays: planDays,
                 });
 
-                // Generate Grocery List
+                if (!result.ok || !result.data?.data?.days) {
+                    throw new Error(result.data?.error || 'Failed to generate plan');
+                }
+
+                currentAIPlan = result.data.data;
+                renderAIPlan(currentAIPlan);
+
+                window.showToast?.('🎉 AI meal plan generated!', 'success');
+
+                // ━━━ Track usage after successful generation ━━━
+                onPlanGenerated();
+            } catch (e) {
+                console.error('[AI Plan Error]', e);
+                // Fallback to old generation
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-4">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--soft-orange);"></i>
+                        <p class="mt-2" style="color: var(--text-muted);">AI generation failed. Please try again or sign in.</p>
+                        <button class="btn btn-neon mt-2" onclick="generateAIPlan()"><i class="bi bi-arrow-clockwise me-1"></i> Retry</button>
+                    </div>`;
+            }
+        }
+
+        function renderAIPlan(plan) {
+            const grid = document.getElementById('planGrid');
+            grid.innerHTML = '';
+            currentPlanMeals = [];
+
+            plan.days.forEach((dayObj, idx) => {
+                const meals = dayObj.meals || [];
+                currentPlanMeals.push(...meals.filter(m => m.category !== 'snack').map(m => m.name));
+
+                const col = document.createElement('div');
+                col.className = 'col-md-6 col-lg-4';
+                col.innerHTML = `
+                    <div class="planner-day">
+                        <div class="day-title">${dayObj.day}</div>
+                        ${meals.map(meal => `
+                            <div class="meal-slot meal-slot-clickable" onclick='openRecipePopup(${JSON.stringify(meal).replace(/'/g, "&#39;")})'>
+                                <div class="meal-slot-label">${meal.category || 'meal'}</div>
+                                <div style="color: var(--text-primary); font-size: 0.9rem;">
+                                    ${meal.emoji || '🍽️'} ${meal.name}
+                                </div>
+                                <small style="color: var(--text-muted);">~${meal.calories || 0} kcal · ${meal.protein || 0}g protein</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                grid.appendChild(col);
+            });
+
+            // Generate Grocery List from meal names
+            try {
                 const groceryGrouped = GoGrocery.generateFromMeals(currentPlanMeals);
                 const allIngredients = Object.values(groceryGrouped).flat();
+                const country = userLocation?.country || 'default';
                 const costInfo = GoGrocery.estimateCost(allIngredients, country);
                 document.getElementById('grocerySection').innerHTML = GoGrocery.renderGroceryList(groceryGrouped, costInfo);
-
-                if (window.reinitMagnetic) window.reinitMagnetic();
-                window.showToast?.('Weekly plan generated!', 'success');
-
             } catch (e) {
-                console.error(e);
-                grid.innerHTML = '<div class="col-12 text-center" style="color: var(--text-muted);">Could not fetch recipes. Using regional suggestions only.</div>';
+                console.warn('Grocery generation skipped:', e.message);
             }
+        }
+
+        /* ——— Recipe Popup ——— */
+        function openRecipePopup(meal) {
+            const nameEncoded = encodeURIComponent(meal.name);
+
+            document.getElementById('recipeEmoji').textContent = meal.emoji || '🍽️';
+            document.getElementById('recipeName').textContent = meal.name;
+
+            // Macros pills
+            document.getElementById('recipeMacros').innerHTML = `
+                <span class="recipe-macro-pill">🔥 ${meal.calories || 0} kcal</span>
+                <span class="recipe-macro-pill" style="color: var(--neon-green);">💪 ${meal.protein || 0}g protein</span>
+                <span class="recipe-macro-pill" style="color: var(--electric-cyan);">🌾 ${meal.carbs || 0}g carbs</span>
+                <span class="recipe-macro-pill" style="color: var(--soft-orange);">🧈 ${meal.fat || 0}g fat</span>
+            `;
+
+            // Set links
+            document.getElementById('recipeYouTube').href = `https://www.youtube.com/results?search_query=${nameEncoded}+healthy+recipe`;
+            document.getElementById('recipeZomato').href = `https://www.zomato.com/search?q=${nameEncoded}`;
+            document.getElementById('recipeSwiggy').href = `https://www.swiggy.com/search?query=${nameEncoded}`;
+
+            recipeModal.show();
+        }
+
+        /* ——— Save Plan ——— */
+        async function saveCurrentPlan() {
+            if (!API.isLoggedIn()) {
+                window.showToast?.('Please sign in to save your plan', 'warning');
+                return;
+            }
+            if (!currentAIPlan || !currentAIPlan.days) {
+                window.showToast?.('No plan to save. Generate one first!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('savePlanBtn');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+            btn.disabled = true;
+
+            const dietPref = document.getElementById('dietPref').value;
+            const allergies = [...document.querySelectorAll('.allergy-check:checked')].map(c => c.value);
+
+            try {
+                const result = await API.saveMealPlan({
+                    name: `AI Plan — ${new Date().toLocaleDateString()}`,
+                    preferences: {
+                        likes: userPrefs.likes,
+                        dislikes: userPrefs.dislikes,
+                        allergies: allergies,
+                        dietType: dietPref,
+                        calorieTarget: calculatedCalories || 2000,
+                        goal: selectedGoal || 'maintenance',
+                    },
+                    days: currentAIPlan.days,
+                    totalCalories: (calculatedCalories || 2000) * planDays,
+                });
+
+                if (result.ok) {
+                    btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Saved!';
+                    btn.style.background = 'var(--neon-green)';
+                    btn.style.color = 'var(--bg-primary)';
+                    window.showToast?.('✅ Meal plan saved! View it in your Dashboard.', 'success');
+                } else {
+                    throw new Error(result.data?.error || 'Save failed');
+                }
+            } catch (e) {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+                window.showToast?.('Failed to save plan: ' + e.message, 'error');
+            }
+        }
+
+        // Keep old function as alias for the "Generate Weekly Plan" button in Results
+        async function generateWeeklyPlan() {
+            await generateAIPlan();
         }
 
         /* ——— PDF Download ——— */
@@ -806,6 +1696,272 @@
 
         // Start at Step 0
         goToStep(0);
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           PREMIUM SUBSCRIPTION SYSTEM
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+        const PLAN_KEYS = {
+            plan: 'goHealthy_plan',
+            limit: 'goHealthy_planLimit',
+            trialUsed: 'goHealthy_freeTrialUsed',
+            genCount: 'goHealthy_mealGenCount',
+            lastReset: 'goHealthy_lastResetDate',
+        };
+
+        let selectedQRPlan = { name: 'basic', amount: 39, limit: 2 };
+
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function initPlanSystem() {
+            // Set defaults if no plan exists
+            if (!localStorage.getItem(PLAN_KEYS.plan)) {
+                localStorage.setItem(PLAN_KEYS.plan, 'free');
+                localStorage.setItem(PLAN_KEYS.limit, '0');
+                localStorage.setItem(PLAN_KEYS.trialUsed, 'false');
+                localStorage.setItem(PLAN_KEYS.genCount, '0');
+                localStorage.setItem(PLAN_KEYS.lastReset, getTodayStr());
+            }
+
+            // Daily reset logic
+            const lastReset = localStorage.getItem(PLAN_KEYS.lastReset);
+            if (lastReset !== getTodayStr()) {
+                localStorage.setItem(PLAN_KEYS.genCount, '0');
+                localStorage.setItem(PLAN_KEYS.lastReset, getTodayStr());
+            }
+
+            renderPlanStatusBar();
+        }
+
+        function getPlanData() {
+            return {
+                plan: localStorage.getItem(PLAN_KEYS.plan) || 'free',
+                limit: parseInt(localStorage.getItem(PLAN_KEYS.limit) || '0'),
+                trialUsed: localStorage.getItem(PLAN_KEYS.trialUsed) === 'true',
+                genCount: parseInt(localStorage.getItem(PLAN_KEYS.genCount) || '0'),
+            };
+        }
+
+        function renderPlanStatusBar() {
+            const data = getPlanData();
+            const badge = document.getElementById('planBadge');
+            const usageText = document.getElementById('planUsageText');
+            const usageBarWrap = document.getElementById('planUsageBarWrap');
+            const usageFill = document.getElementById('planUsageFill');
+            const upgradeBtn = document.getElementById('upgradeBtn');
+
+            if (data.plan === 'free') {
+                badge.textContent = 'FREE TRIAL';
+                badge.className = 'plan-badge badge-free';
+                usageBarWrap.style.display = 'none';
+                if (!data.trialUsed) {
+                    usageText.textContent = '1 free plan available';
+                    usageText.style.color = 'var(--neon-green)';
+                } else {
+                    usageText.textContent = 'Free trial used — Upgrade to continue';
+                    usageText.style.color = 'var(--soft-orange)';
+                }
+                upgradeBtn.style.display = '';
+            } else {
+                const planLabel = data.plan === 'pro' ? 'PRO' : 'BASIC';
+                const badgeClass = data.plan === 'pro' ? 'badge-pro' : 'badge-basic';
+                badge.textContent = planLabel;
+                badge.className = 'plan-badge ' + badgeClass;
+                usageText.textContent = `${data.genCount} / ${data.limit} plans used today`;
+                usageText.style.color = data.genCount >= data.limit ? '#ff5252' : 'var(--text-secondary)';
+                usageBarWrap.style.display = 'block';
+                usageFill.style.width = Math.min((data.genCount / data.limit) * 100, 100) + '%';
+                if (data.genCount >= data.limit) {
+                    usageFill.style.background = '#ff5252';
+                } else {
+                    usageFill.style.background = 'linear-gradient(90deg, var(--neon-green), var(--electric-cyan))';
+                }
+                upgradeBtn.innerHTML = '<i class="bi bi-arrow-up-circle me-1"></i>Change Plan';
+                upgradeBtn.style.display = data.plan === 'pro' ? 'none' : '';
+            }
+        }
+
+        function checkMealPlanLimit() {
+            const data = getPlanData();
+
+            if (data.plan === 'free') {
+                if (!data.trialUsed) {
+                    // First plan is free — allow
+                    return true;
+                } else {
+                    // Trial used, must upgrade
+                    document.getElementById('pricingSubtitle').textContent = 'Your free trial plan has been used. Upgrade to continue!';
+                    openPricingModal();
+                    return false;
+                }
+            }
+
+            // Paid plan — check daily limit
+            if (data.genCount >= data.limit) {
+                const msg = data.plan === 'basic'
+                    ? 'Daily limit reached (2/2). Upgrade to Pro for 5 plans/day!'
+                    : 'Daily limit reached. Come back tomorrow!';
+                document.getElementById('pricingSubtitle').textContent = msg;
+                if (data.plan === 'basic') {
+                    openPricingModal();
+                } else {
+                    window.showToast?.(msg, 'warning');
+                }
+                return false;
+            }
+
+            return true;
+        }
+
+        function onPlanGenerated() {
+            const data = getPlanData();
+
+            if (data.plan === 'free') {
+                // Mark free trial as used
+                localStorage.setItem(PLAN_KEYS.trialUsed, 'true');
+            } else {
+                // Increment daily count for paid plans
+                const newCount = data.genCount + 1;
+                localStorage.setItem(PLAN_KEYS.genCount, newCount.toString());
+            }
+
+            renderPlanStatusBar();
+        }
+
+        /* ——— Pricing Modal ——— */
+        function openPricingModal() {
+            // Always reset to step 1 (plan selection)
+            document.getElementById('pricingStep1').style.display = '';
+            document.getElementById('pricingStep2').style.display = 'none';
+            document.getElementById('pricingStep3').style.display = 'none';
+            pricingModal.show();
+        }
+
+        /* ——— Razorpay Payment Checkout ——— */
+        async function checkoutWithRazorpay(planName, amount, limit) {
+            if (!API.isLoggedIn()) {
+                window.showToast?.('Please sign in to purchase a plan', 'warning');
+                setTimeout(() => window.location.href = 'sign_in.html?redirect=Mealplanner.html', 1500);
+                return;
+            }
+
+            try {
+                // 1. Create order on the backend
+                const orderResult = await API.createRazorpayOrder(planName, amount);
+                if (!orderResult.ok || !orderResult.data.success) {
+                    throw new Error(orderResult.data.message || 'Error creating order');
+                }
+
+                const orderData = orderResult.data;
+
+                // 2. Open Razorpay Checkout Widget
+                const options = {
+                    key: 'rzp_test_SbRfIRJNIcljCo', // User's Test Key ID
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: 'GoHealthy',
+                    description: `GoHealthy ${planName === 'pro' ? 'Pro' : 'Basic'} Plan`,
+                    order_id: orderData.orderId,
+                    handler: async function (response) {
+                        try {
+                            // 3. Verify payment on the backend
+                            const verifyResult = await API.verifyRazorpayPayment({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            });
+
+                            if (verifyResult.ok && verifyResult.data.success) {
+                                // 4. Payment verified successfully
+                                selectedQRPlan = { name: planName, amount, limit }; 
+                                completePayment(); // show success animation
+                            } else {
+                                throw new Error(verifyResult.data.message || 'Payment verification failed');
+                            }
+                        } catch (err) {
+                            console.error('Verification error:', err);
+                            window.showToast?.('Payment successful, but verification failed. Please contact support.', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: API.getUser()?.name || '',
+                        email: API.getUser()?.email || ''
+                    },
+                    theme: {
+                        color: '#00ff88' // Our neon green 
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    console.error('Payment failed:', response.error);
+                    window.showToast?.('Payment failed: ' + response.error.description, 'error');
+                });
+                rzp.open();
+
+            } catch (error) {
+                console.error('[Razorpay Checkout Error]:', error);
+                window.showToast?.('Could not initiate payment. Are you signed in?', 'error');
+            }
+        }
+
+        /* ——— Payment Completion ——— */
+        function completePayment() {
+            // Show success animation step
+            document.getElementById('pricingStep1').style.display = 'none';
+            document.getElementById('pricingStep2').style.display = 'none';
+            document.getElementById('pricingStep3').style.display = '';
+
+            // Reset animation state
+            const anim = document.getElementById('paySuccessAnim');
+            anim.classList.remove('animate');
+            document.getElementById('successCircle').style.strokeDashoffset = '314.16';
+            document.getElementById('successCheck').style.strokeDashoffset = '70';
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                anim.classList.add('animate');
+            });
+
+            // After animation completes, activate plan and close modal
+            setTimeout(() => {
+                document.getElementById('paySuccessTitle').textContent = 'Plan Activated! 🎉';
+                const planLabel = selectedQRPlan.name === 'pro' ? 'Pro' : 'Basic';
+                document.getElementById('paySuccessMsg').textContent = `${planLabel} plan is now active — ${selectedQRPlan.limit} plans/day`;
+            }, 1200);
+
+            setTimeout(() => {
+                onPaymentSuccess(selectedQRPlan.name, selectedQRPlan.limit);
+                pricingModal.hide();
+
+                // Reset modal state for next open
+                document.getElementById('pricingStep1').style.display = '';
+                document.getElementById('pricingStep2').style.display = 'none';
+                document.getElementById('pricingStep3').style.display = 'none';
+            }, 2800);
+        }
+
+        function onPaymentSuccess(planName, limit) {
+            localStorage.setItem(PLAN_KEYS.plan, planName);
+            localStorage.setItem(PLAN_KEYS.limit, limit.toString());
+            localStorage.setItem(PLAN_KEYS.genCount, '0');
+            localStorage.setItem(PLAN_KEYS.lastReset, getTodayStr());
+
+            // Log the payment
+            const txnLog = JSON.parse(localStorage.getItem('goHealthy_txnLog') || '[]');
+            txnLog.push({
+                plan: planName,
+                amount: selectedQRPlan.amount,
+                date: new Date().toISOString(),
+                method: 'razorpay'
+            });
+            localStorage.setItem('goHealthy_txnLog', JSON.stringify(txnLog));
+
+            renderPlanStatusBar();
+            window.showToast?.(`\u2705 ${planName === 'pro' ? 'Pro' : 'Basic'} plan activated! You now have ${limit} plans/day.`, 'success');
+        }
     </script>
 
 </body>

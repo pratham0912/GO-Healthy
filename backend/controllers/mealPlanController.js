@@ -2,6 +2,40 @@
 // Replaces the in-memory route handler with MongoDB-backed operations.
 
 import MealPlan from '../models/MealPlan.js';
+import { generatePersonalizedPlan } from '../services/geminiService.js';
+
+/**
+ * POST /api/mealplan/generate
+ * Generate a personalized meal plan using AI (no save).
+ */
+export const generateMealPlan = async (req, res) => {
+  try {
+    const { likes, dislikes, allergies, goal, dietType, calorieTarget, numDays } = req.body;
+
+    // Validate: at least something to work with
+    if (!goal && !dietType && (!likes || likes.length === 0)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide at least a goal, diet type, or food preferences',
+      });
+    }
+
+    const plan = await generatePersonalizedPlan({
+      likes: likes || [],
+      dislikes: dislikes || [],
+      allergies: allergies || [],
+      goal: goal || 'maintenance',
+      dietType: dietType || 'any',
+      calorieTarget: calorieTarget || 2000,
+      numDays: Math.min(Math.max(numDays || 7, 3), 7),
+    });
+
+    return res.status(200).json({ success: true, data: plan });
+  } catch (error) {
+    console.error('[mealPlanController.generateMealPlan] Error:', error.message);
+    return res.status(500).json({ success: false, error: 'Failed to generate meal plan' });
+  }
+};
 
 /**
  * GET /api/mealplan

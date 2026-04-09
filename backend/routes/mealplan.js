@@ -6,11 +6,15 @@ import {
   saveMealPlan,
   deleteMealPlan,
   getMealPlanHistory,
+  generateMealPlan,
 } from '../controllers/mealPlanController.js';
 
 const router = express.Router();
 
 router.use(protect);
+
+// POST /api/mealplan/generate — AI-generated meal plan (no save)
+router.post('/generate', generateMealPlan);
 
 // GET  /api/mealplan          — get active meal plan
 router.get('/', getMealPlan);

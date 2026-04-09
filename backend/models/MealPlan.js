@@ -38,6 +38,9 @@ const MealPlanSchema = new mongoose.Schema(
     },
     // Preferences that generated this plan
     preferences: {
+      likes:         [String],  // foods user likes
+      dislikes:      [String],  // foods user dislikes
+      allergies:     [String],  // allergens to avoid
       dietType:      { type: String },
       calorieTarget: { type: Number },
       goal:          { type: String },

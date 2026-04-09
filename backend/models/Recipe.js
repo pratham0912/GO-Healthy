@@ -12,10 +12,14 @@ const recipeSchema = new mongoose.Schema({
   ingredients: { type: [mongoose.Schema.Types.Mixed], default: [] },
   calories: { type: Number, default: 0 },
   protein: { type: Number, default: 0 },
+  carbs: { type: Number, default: 0 },
+  fats: { type: Number, default: 0 },
+  servingSize: { type: String, default: '' },
   image: { type: String, default: '' },
   emoji: { type: String, default: '' },
   steps: { type: [String], default: [] },
   tags: { type: [String], default: [] },
+  isVeg: { type: Boolean, default: true },
 }, { timestamps: true });
 
 // Full-text search index

@@ -332,6 +332,29 @@ const API = (() => {
         return await request('/mealplan/history');
     }
 
+    async function generateMealPlan(preferences) {
+        return await request('/mealplan/generate', {
+            method: 'POST',
+            body: JSON.stringify(preferences)
+        });
+    }
+
+    // ─── Payment / Razorpay APIs ─────────────────────
+
+    async function createRazorpayOrder(plan, amount) {
+        return await request('/payment/create-order', {
+            method: 'POST',
+            body: JSON.stringify({ plan, amount })
+        });
+    }
+
+    async function verifyRazorpayPayment(paymentData) {
+        return await request('/payment/verify', {
+            method: 'POST',
+            body: JSON.stringify(paymentData)
+        });
+    }
+
     // ─── Theme Helper ────────────────────────────────
 
     function updateThemeIcon(theme) {
@@ -341,26 +364,34 @@ const API = (() => {
     }
 
     async function applyTheme() {
-        let theme = localStorage.getItem('gohealthy_theme') || 'dark';
+        let theme = localStorage.getItem('theme') || localStorage.getItem('gohealthy_theme') || 'dark';
 
         if (isLoggedIn()) {
             const result = await getDashboard();
             if (result.ok && result.data?.data?.theme) {
                 theme = result.data.data.theme;
-                localStorage.setItem('gohealthy_theme', theme);
             }
         }
 
+        if (theme === 'dark') {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+
         document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        localStorage.setItem('gohealthy_theme', theme);
         updateThemeIcon(theme);
         return theme;
     }
 
     async function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-theme') || 'dark';
-        const next = current === 'dark' ? 'light' : 'dark';
+        document.body.classList.toggle('dark-mode');
+        const next = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
 
         document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
         localStorage.setItem('gohealthy_theme', next);
         updateThemeIcon(next);
 
@@ -398,6 +429,10 @@ const API = (() => {
                             <ul class="dropdown-menu dropdown-menu-end" style="background: var(--bg-secondary); border: 1px solid var(--glass-border);">
                                 <li><a class="dropdown-item" href="dashboard.html" style="color: var(--text-primary);">
                                     <i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item d-flex align-items-center justify-content-between" href="Mealplanner.html?upgrade=1" style="color: var(--text-primary);" id="navUpgradeItem">
+                                    <span><i class="bi bi-gem me-2" style="color: var(--purple-accent);"></i>Upgrade Plan</span>
+                                    <span class="nav-plan-badge" id="navPlanBadge"></span>
+                                </a></li>
                                 <li><hr class="dropdown-divider" style="border-color: var(--glass-border);"></li>
                                 <li><a class="dropdown-item" href="#" onclick="API.logout(); return false;" style="color: var(--soft-orange);">
                                     <i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
@@ -405,6 +440,26 @@ const API = (() => {
                         </div>`;
                 }
             });
+
+            // Render plan badge in dropdown
+            setTimeout(renderNavPlanBadge, 50);
+        }
+    }
+
+    function renderNavPlanBadge() {
+        const badge = document.getElementById('navPlanBadge');
+        if (!badge) return;
+        const plan = localStorage.getItem('goHealthy_plan') || 'free';
+        const labels = { free: 'FREE', basic: 'BASIC', pro: 'PRO' };
+        const colors = { free: { bg: 'rgba(40,167,69,0.15)', color: '#28a745', border: 'rgba(40,167,69,0.3)' }, basic: { bg: 'rgba(13,110,253,0.12)', color: '#0d6efd', border: 'rgba(13,110,253,0.3)' }, pro: { bg: 'rgba(124,77,255,0.15)', color: '#b388ff', border: 'rgba(124,77,255,0.3)' } };
+        const c = colors[plan] || colors.free;
+        badge.textContent = labels[plan] || 'FREE';
+        badge.style.cssText = `background:${c.bg}; color:${c.color}; border:1px solid ${c.border}; padding:2px 8px; border-radius:10px; font-size:0.6rem; font-weight:800; letter-spacing:0.05em;`;
+
+        // Update link text for pro users
+        const item = document.getElementById('navUpgradeItem');
+        if (item && plan === 'pro') {
+            item.querySelector('span:first-child').innerHTML = '<i class="bi bi-gem me-2" style="color: var(--purple-accent);"></i>My Plan';
         }
     }
 
@@ -490,6 +545,11 @@ const API = (() => {
         saveMealPlan,
         deleteMealPlan,
         getMealPlanHistory,
+        generateMealPlan,
+
+        // Payment
+        createRazorpayOrder,
+        verifyRazorpayPayment,
 
         // Theme
         applyTheme,

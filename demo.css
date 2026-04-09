@@ -1634,9 +1634,9 @@ h6 {
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    DARK THEME OVERRIDE
-   Activated via: <html data-theme="dark">
+   Activated via: <html data-theme="dark"> or <body class="dark-mode">
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-[data-theme="dark"] {
+[data-theme="dark"], body.dark-mode {
     color-scheme: dark; /* Forces native browser UI components to dark mode */
     --bg-primary: #000000;
     --bg-secondary: #111111;
@@ -1669,67 +1669,75 @@ h6 {
     --gradient-card: linear-gradient(135deg, rgba(0,255,135,0.03), rgba(0,212,255,0.03));
 }
 
-[data-theme="dark"] .glass-nav {
+[data-theme="dark"] .glass-nav, body.dark-mode .glass-nav {
     background: rgba(0, 0, 0, 0.95);
     border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
-[data-theme="dark"] .glass-nav .navbar-brand span {
+[data-theme="dark"] .glass-nav .navbar-brand span, body.dark-mode .glass-nav .navbar-brand span {
     color: #f0f0f0 !important;
 }
 
-[data-theme="dark"] .glass-nav .nav-link {
+[data-theme="dark"] .glass-nav .nav-link, body.dark-mode .glass-nav .nav-link {
     color: #a0aec0 !important;
 }
 
 [data-theme="dark"] .glass-nav .nav-link:hover,
-[data-theme="dark"] .glass-nav .nav-link.active {
+[data-theme="dark"] .glass-nav .nav-link.active,
+body.dark-mode .glass-nav .nav-link:hover,
+body.dark-mode .glass-nav .nav-link.active {
     color: #00ff87 !important;
 }
 
-[data-theme="dark"] .glass-nav .navbar-toggler .bi-list {
+[data-theme="dark"] .glass-nav .navbar-toggler .bi-list, body.dark-mode .glass-nav .navbar-toggler .bi-list {
     color: #f0f0f0 !important;
 }
 
 [data-theme="dark"] .form-control-dark,
-[data-theme="dark"] .form-select.form-control-dark {
+[data-theme="dark"] .form-select.form-control-dark,
+body.dark-mode .form-control-dark,
+body.dark-mode .form-select.form-control-dark {
     background-color: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.1);
     color: #f0f0f0;
 }
 
 [data-theme="dark"] .form-control-dark:focus,
-[data-theme="dark"] .form-select.form-control-dark:focus {
+[data-theme="dark"] .form-select.form-control-dark:focus,
+body.dark-mode .form-control-dark:focus,
+body.dark-mode .form-select.form-control-dark:focus {
     background-color: rgba(255, 255, 255, 0.08);
     border-color: #00ff87;
 }
 
-[data-theme="dark"] .form-control-dark::placeholder {
+[data-theme="dark"] .form-control-dark::placeholder, body.dark-mode .form-control-dark::placeholder {
     color: #64748b;
 }
 
 /* Style the native <option> elements within select boxes in dark mode */
 [data-theme="dark"] select.form-control-dark option,
-[data-theme="dark"] .form-select.form-control-dark option {
+[data-theme="dark"] .form-select.form-control-dark option,
+body.dark-mode select.form-control-dark option,
+body.dark-mode .form-select.form-control-dark option {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
 }
 
-[data-theme="dark"] .filter-btn {
+[data-theme="dark"] .filter-btn, body.dark-mode .filter-btn {
     background: rgba(255, 255, 255, 0.05);
     color: #a0aec0;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="dark"] .btn-close-white {
+[data-theme="dark"] .btn-close-white, body.dark-mode .btn-close-white {
     filter: invert(1);
 }
 
-[data-theme="dark"] a:hover {
+[data-theme="dark"] a:hover, body.dark-mode a:hover {
     color: #00ff87;
 }
 
-[data-theme="dark"] .text-gradient {
+[data-theme="dark"] .text-gradient, body.dark-mode .text-gradient {
     color: #00ff87;
     -webkit-text-fill-color: #00ff87;
 }

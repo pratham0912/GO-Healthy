@@ -70,7 +70,7 @@
                         <i class="bi bi-search ms-3" style="color: var(--text-muted); font-size: 1.1rem;"></i>
                         <input type="text" id="searchInput" class="form-control border-0 bg-transparent shadow-none"
                             placeholder="Search recipes (e.g. Avocado Toast)..."
-                            style="color: var(--text-primary); font-size: 0.95rem;">
+                            style="color: var(--text-primary); font-size: 0.95rem;" maxlength="150">
                         <button class="voice-btn" id="voiceSearchBtn" title="Voice Search">
                             <i class="bi bi-mic-fill"></i>
                         </button>
@@ -78,7 +78,30 @@
                             <i class="bi bi-search me-1"></i> Search
                         </button>
                     </div>
+                    <div id="searchCharCounter" class="text-end mt-1" style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); transition: color 0.3s ease; letter-spacing: 0.02em;">0 / 150</div>
                 </div>
+            </div>
+
+            <!-- Veg / Non-Veg Toggle -->
+            <div class="d-flex justify-content-center gap-3 mb-3 reveal delay-2">
+                <button class="diet-toggle-btn active" id="dietAll" onclick="setDietFilter('all')">
+                    <span class="diet-icon-all">
+                        <span class="veg-dot"></span><span class="nonveg-dot"></span>
+                    </span>
+                    All
+                </button>
+                <button class="diet-toggle-btn" id="dietVeg" onclick="setDietFilter('veg')">
+                    <span class="veg-symbol">
+                        <span class="veg-inner"></span>
+                    </span>
+                    Veg
+                </button>
+                <button class="diet-toggle-btn" id="dietNonVeg" onclick="setDietFilter('nonveg')">
+                    <span class="nonveg-symbol">
+                        <span class="nonveg-inner"></span>
+                    </span>
+                    Non-Veg
+                </button>
             </div>
 
             <!-- Category Filter Buttons -->
@@ -208,6 +231,10 @@
                                 <i class="bi bi-pie-chart me-2"></i>Nutrition (Est.)
                             </h5>
                             <div id="modalNutrition">
+                                <div class="glass-card p-3 mb-2 d-flex justify-content-between" id="servingSizeContainer" style="display: none !important;">
+                                    <span style="color: var(--text-secondary);">Serving Size</span>
+                                    <span class="fw-bold" id="nutServing" style="color: var(--text-primary);">-</span>
+                                </div>
                                 <div class="glass-card p-3 mb-2 d-flex justify-content-between">
                                     <span style="color: var(--text-secondary);">Calories</span>
                                     <span class="fw-bold" id="nutCal" style="color: var(--soft-orange);">~450
@@ -241,13 +268,29 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="mt-4 text-center pb-4 d-flex flex-wrap justify-content-center gap-3">
-                        <button id="modalYoutube" class="btn btn-orange rounded-pill px-4" onclick="openYouTube()">
-                            <i class="bi bi-youtube me-1"></i> Show on YouTube
-                        </button>
-                        <button class="btn btn-ghost rounded-pill px-4" onclick="saveRecipe()">
-                            <i class="bi bi-bookmark me-1"></i> Save Recipe
-                        </button>
+                    <div class="mt-4 pb-4">
+                        <div class="d-flex flex-column gap-2" style="max-width: 400px; margin: 0 auto;">
+                            <a id="modalYoutubeLink" href="#" target="_blank" class="recipe-link-btn youtube-link">
+                                <i class="bi bi-youtube"></i>
+                                <span>Watch Recipe on YouTube</span>
+                                <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <a id="modalZomatoLink" href="#" target="_blank" class="recipe-link-btn zomato-link">
+                                <span style="font-size: 1.1rem;">🛵</span>
+                                <span>Order on Zomato</span>
+                                <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <a id="modalSwiggyLink" href="#" target="_blank" class="recipe-link-btn swiggy-link">
+                                <span style="font-size: 1.1rem;">🟠</span>
+                                <span>Order on Swiggy</span>
+                                <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
+                            </a>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-ghost rounded-pill px-4" onclick="saveRecipe()">
+                                <i class="bi bi-bookmark me-1"></i> Save Recipe
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -255,6 +298,165 @@
     </div>
 
     <footer class="footer-dark" id="mainFooter"></footer>
+
+    <style>
+        .recipe-link-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s;
+        }
+        .recipe-link-btn:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+        .youtube-link {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff4444;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+        }
+        .youtube-link:hover {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.15);
+        }
+        .zomato-link {
+            background: rgba(239, 79, 95, 0.1);
+            color: #ef4f5f;
+            border: 1px solid rgba(239, 79, 95, 0.2);
+        }
+        .zomato-link:hover {
+            background: rgba(239, 79, 95, 0.2);
+            color: #ef4f5f;
+            box-shadow: 0 4px 16px rgba(239, 79, 95, 0.15);
+        }
+        .swiggy-link {
+            background: rgba(252, 128, 25, 0.1);
+            color: #fc8019;
+            border: 1px solid rgba(252, 128, 25, 0.2);
+        }
+        .swiggy-link:hover {
+            background: rgba(252, 128, 25, 0.2);
+            color: #fc8019;
+            box-shadow: 0 4px 16px rgba(252, 128, 25, 0.15);
+        }
+
+        /* ── Veg / Non-Veg Toggle ── */
+        .diet-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 50px;
+            border: 2px solid var(--glass-border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .diet-toggle-btn:hover {
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+        .diet-toggle-btn.active {
+            border-color: var(--neon-green);
+            background: rgba(0,255,136,0.08);
+            color: var(--text-primary);
+            box-shadow: 0 4px 16px rgba(0,255,136,0.12);
+        }
+        #dietVeg.active {
+            border-color: #00a651;
+            background: rgba(0, 166, 81, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 166, 81, 0.15);
+        }
+        #dietNonVeg.active {
+            border-color: #b5342c;
+            background: rgba(181, 52, 44, 0.1);
+            box-shadow: 0 4px 16px rgba(181, 52, 44, 0.15);
+        }
+
+        /* Indian Veg Symbol — green square with green circle */
+        .veg-symbol {
+            width: 18px; height: 18px;
+            border: 2px solid #00a651;
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .veg-inner {
+            width: 8px; height: 8px;
+            background: #00a651;
+            border-radius: 50%;
+        }
+
+        /* Indian Non-Veg Symbol — brown/red square with brown triangle */
+        .nonveg-symbol {
+            width: 18px; height: 18px;
+            border: 2px solid #b5342c;
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nonveg-inner {
+            width: 0; height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 8px solid #b5342c;
+        }
+
+        /* All icon — both dots */
+        .diet-icon-all {
+            display: flex; gap: 3px; align-items: center;
+        }
+        .veg-dot {
+            width: 8px; height: 8px;
+            background: #00a651;
+            border-radius: 50%;
+        }
+        .nonveg-dot {
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 7px solid #b5342c;
+        }
+
+        /* Small veg/nonveg badge on recipe cards */
+        .veg-badge {
+            position: absolute;
+            top: 12px; left: 12px;
+            width: 22px; height: 22px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2;
+            backdrop-filter: blur(8px);
+        }
+        .veg-badge.is-veg {
+            border: 2px solid #00a651;
+            background: rgba(0,20,0,0.7);
+        }
+        .veg-badge.is-veg::after {
+            content: '';
+            width: 8px; height: 8px;
+            background: #00a651;
+            border-radius: 50%;
+        }
+        .veg-badge.is-nonveg {
+            border: 2px solid #b5342c;
+            background: rgba(20,0,0,0.7);
+        }
+        .veg-badge.is-nonveg::after {
+            content: '';
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 7px solid #b5342c;
+        }
+    </style>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -277,6 +479,7 @@
 
         let currentRecipe = null;
         let activeCategory = 'breakfast';
+        let activeDiet = 'all'; // 'all' | 'veg' | 'nonveg'
 
         const BACKEND = 'http://localhost:5000';
 
@@ -308,23 +511,59 @@
 
         /* ——— Voice Search ——— */
         const voiceBtn = document.getElementById('voiceSearchBtn');
-        const recognition = window.initVoiceSearch ? window.initVoiceSearch(searchInput, (text) => {
-            performSearch(text);
-            voiceBtn.classList.remove('listening');
-        }) : null;
+        let recognition = null;
+        
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = "en-US";
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                searchInput.value = transcript;
+                updateCharCounter();
+                performSearch(transcript);
+                voiceBtn.classList.remove('listening');
+            };
 
-        if (voiceBtn && recognition) {
+            recognition.onerror = function(event) {
+                if(event.error === 'not-allowed') {
+                    window.showToast?.('Microphone access denied! Please allow access.', 'danger');
+                    alert('Microphone permission denied. Please allow microphone access to use voice search.');
+                } else {
+                    window.showToast?.('Could not hear you. Please try again.', 'warning');
+                }
+                voiceBtn.classList.remove('listening');
+            };
+
+            recognition.onend = function() {
+                voiceBtn.classList.remove('listening');
+            };
+        }
+
+        if (voiceBtn) {
             voiceBtn.addEventListener('click', () => {
+                if(!recognition) {
+                    window.showToast?.('Voice search is not supported in this browser.', 'warning');
+                    alert('Voice search is not supported in your browser.');
+                    return;
+                }
                 voiceBtn.classList.toggle('listening');
                 if (voiceBtn.classList.contains('listening')) {
-                    recognition.start();
-                    window.showToast?.('Listening... Say a recipe name', 'info');
+                    try {
+                        recognition.start();
+                        window.showToast?.('Listening... Say a recipe name', 'info');
+                    } catch(e) {
+                        recognition.stop();
+                        voiceBtn.classList.remove('listening');
+                    }
                 } else {
                     recognition.stop();
                 }
             });
-            recognition.onend = () => voiceBtn.classList.remove('listening');
         }
+
 
         /* ——— Fetch from Backend ——— */
         async function fetchRecipes(params = {}) {
@@ -379,16 +618,33 @@
                 </div>`;
         }
 
+        /* ——— Diet Filter (Veg / Non-Veg) ——— */
+        function setDietFilter(diet) {
+            activeDiet = diet;
+            document.querySelectorAll('.diet-toggle-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(diet === 'veg' ? 'dietVeg' : diet === 'nonveg' ? 'dietNonVeg' : 'dietAll').classList.add('active');
+            // Re-fetch with current category
+            switchCategory(activeCategory);
+        }
+
+        /* ——— Build params with diet filter ——— */
+        function buildParams(extra = {}) {
+            const params = { ...extra };
+            if (activeDiet === 'veg') params.isVeg = 'true';
+            return params;
+        }
+
         /* ——— Switch Category ——— */
         async function switchCategory(category) {
             activeCategory = category;
             setActiveButton(category);
             const backendCat = catMap[category] || category;
             const label = categoryLabels[backendCat] || category;
-            sectionTitle.innerHTML = `<span class="text-gradient">${label}</span> Recipes`;
+            const dietLabel = activeDiet === 'veg' ? ' (Veg Only)' : '';
+            sectionTitle.innerHTML = `<span class="text-gradient">${label}</span> Recipes${dietLabel}`;
             showLoading();
-            const params = backendCat === 'all' ? {} : { category: backendCat };
-            const recipes = await fetchRecipes(params);
+            const base = backendCat === 'all' ? {} : { category: backendCat };
+            const recipes = await fetchRecipes(buildParams(base));
             displayRecipes(recipes);
         }
 
@@ -397,7 +653,7 @@
             setActiveButton('');
             sectionTitle.innerHTML = `Searching for "<span class="text-gradient">${query}</span>"`;
             showLoading();
-            const recipes = await fetchRecipes({ search: query });
+            const recipes = await fetchRecipes(buildParams({ search: query }));
             displayRecipes(recipes);
         }
 
@@ -436,6 +692,7 @@
                 card.innerHTML = `
                     <div class="glass-card h-100 p-0" style="cursor: pointer;" onclick="showRecipeDetails('${recipeId}')">
                         <div class="recipe-img-container" style="position: relative;">
+                            <div class="veg-badge ${recipe.isVeg !== false ? 'is-veg' : 'is-nonveg'}"></div>
                             <img src="${imgSrc}" alt="${recipe.name}" loading="lazy"
                                  onerror="this.src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400'">
                             <div class="overlay-gradient"></div>
@@ -486,8 +743,12 @@
                 document.getElementById('imageSection').style.display = 'block';
                 document.getElementById('videoContainer').innerHTML = '';
 
-                // YouTube
-                youtubeUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(recipe.name + ' recipe');
+                // External links (YouTube, Zomato, Swiggy)
+                const nameEncoded = encodeURIComponent(recipe.name);
+                youtubeUrl = 'https://www.youtube.com/results?search_query=' + nameEncoded + '+recipe';
+                document.getElementById('modalYoutubeLink').href = youtubeUrl;
+                document.getElementById('modalZomatoLink').href = `https://www.zomato.com/search?q=${nameEncoded}`;
+                document.getElementById('modalSwiggyLink').href = `https://www.swiggy.com/search?query=${nameEncoded}`;
 
                 // Tags
                 const tagsEl = document.getElementById('modalTags');
@@ -523,10 +784,19 @@
 
                 // Nutrition
                 const nut = calcNutrition(ings);
+                
+                const servingContainer = document.getElementById('servingSizeContainer');
+                if (recipe.servingSize) {
+                    servingContainer.style.setProperty('display', 'flex', 'important');
+                    document.getElementById('nutServing').textContent = recipe.servingSize;
+                } else {
+                    servingContainer.style.setProperty('display', 'none', 'important');
+                }
+
                 document.getElementById('nutCal').textContent     = `${nut.cal || recipe.calories || 0} kcal`;
                 document.getElementById('nutProtein').textContent = `${nut.protein || recipe.protein || 0}g`;
-                document.getElementById('nutCarbs').textContent   = `~${nut.carbs}g`;
-                document.getElementById('nutFats').textContent    = `~${nut.fats}g`;
+                document.getElementById('nutCarbs').textContent   = `${recipe.carbs || nut.carbs || 0}g`;
+                document.getElementById('nutFats').textContent    = `${recipe.fats || nut.fats || 0}g`;
 
                 recipeModal.show();
             } catch (error) { console.error(error); }
@@ -559,6 +829,38 @@
         searchButton.addEventListener('click', () => { const q = searchInput.value.trim(); if (q) performSearch(q); });
         searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { const q = searchInput.value.trim(); if (q) performSearch(q); } });
 
+        /* ——— Character Counter (150 limit) ——— */
+        const charCounter = document.getElementById('searchCharCounter');
+        const CHAR_LIMIT = 150;
+
+        function updateCharCounter() {
+            const len = searchInput.value.length;
+            charCounter.textContent = `${len} / ${CHAR_LIMIT}`;
+
+            if (len >= CHAR_LIMIT) {
+                charCounter.style.color = '#ff5252';
+                charCounter.style.textShadow = '0 0 6px rgba(255,82,82,0.3)';
+            } else if (len > 120) {
+                charCounter.style.color = 'var(--soft-orange)';
+                charCounter.style.textShadow = 'none';
+            } else {
+                charCounter.style.color = 'var(--text-muted)';
+                charCounter.style.textShadow = 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', updateCharCounter);
+
+        // Handle paste overflow — trim to 150 chars
+        searchInput.addEventListener('paste', (e) => {
+            setTimeout(() => {
+                if (searchInput.value.length > CHAR_LIMIT) {
+                    searchInput.value = searchInput.value.substring(0, CHAR_LIMIT);
+                }
+                updateCharCounter();
+            }, 0);
+        });
+
 
 
         /* ——— Advanced Filter Functions ——— */
@@ -576,7 +878,7 @@
             const q = searchInput.value.trim();
             if (q) params.search = q;
             showLoading();
-            fetchRecipes(params).then(displayRecipes);
+            fetchRecipes(buildParams(params)).then(displayRecipes);
         }
 
         function clearAdvancedFilters() {

@@ -23,6 +23,7 @@ import waterRoutes from './routes/water.js';
 // ── Recipe API (new — replaces api_2)
 import recipeRoutes from './routes/recipeRoutes.js';
 import mealplanRoutes from './routes/mealplan.js';
+import paymentRoutes from './routes/payment.js';
 // ── Preserved auxiliary routes (now ESM)
 import contactRoutes from './routes/contactRoutes.js';
 import imageRoutes from './routes/imageRoutes.js';
@@ -86,6 +87,8 @@ app.use('/api/water', waterRoutes);
 app.use('/api/recipes', recipeRoutes);
 // Meal Plan
 app.use('/api/mealplan', mealplanRoutes);
+// Payment
+app.use('/api/payment', paymentRoutes);
 // Auxiliary
 app.use('/api/contact', contactRoutes);
 app.use('/api/images', imageRoutes);

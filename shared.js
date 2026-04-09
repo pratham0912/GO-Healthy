@@ -93,10 +93,14 @@
     });
 
     /* ——— Smooth Scroll for anchor links ——— */
+    // Only target links with actual section IDs (e.g. "#features"), NOT plain "#"
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        const hash = anchor.getAttribute('href');
+        // Skip plain "#" links — they may be dynamic (modal links, etc.)
+        if (!hash || hash === '#') return;
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+            const target = document.querySelector(hash);
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }

@@ -3,10 +3,11 @@ import Recipe from '../models/Recipe.js';
 // GET /api/recipes
 export const getRecipes = async (req, res) => {
   try {
-    const { search, category, minCalories, maxCalories, minProtein, maxProtein } = req.query;
+    const { search, category, minCalories, maxCalories, minProtein, maxProtein, isVeg } = req.query;
 
     const filter = {};
     if (category && category !== 'all') filter.category = category;
+    if (isVeg === 'true') filter.isVeg = true;
     if (minCalories || maxCalories) {
       filter.calories = {};
       if (minCalories) filter.calories.$gte = Number(minCalories);
@@ -24,7 +25,18 @@ export const getRecipes = async (req, res) => {
       ];
     }
 
-    const recipes = await Recipe.find(filter).sort({ name: 1 }).limit(500);
+    // Exclude beef recipes globally — filter by name AND ingredient names
+    const beefExclusion = {
+      $and: [
+        { name: { $not: /beef/i } },
+        { 'ingredients.name': { $not: /beef/i } },
+        { description: { $not: /beef/i } },
+      ]
+    };
+
+    const finalQuery = { ...filter, ...beefExclusion };
+
+    const recipes = await Recipe.find(finalQuery).sort({ name: 1 }).limit(500);
     res.json(recipes);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -45,12 +57,15 @@ export const getRecipeById = async (req, res) => {
 // POST /api/recipes
 export const createRecipe = async (req, res) => {
   try {
-    const { name, category, description, ingredients, calories, protein, image, steps, tags } = req.body;
+    const { name, category, description, ingredients, calories, protein, carbs, fats, servingSize, image, steps, tags } = req.body;
     const recipe = await Recipe.create({
       name, category, description,
       ingredients: typeof ingredients === 'string' ? JSON.parse(ingredients) : (ingredients || []),
       calories: Number(calories) || 0,
       protein: Number(protein) || 0,
+      carbs: Number(carbs) || 0,
+      fats: Number(fats) || 0,
+      servingSize: servingSize || '',
       image: req.file ? `/uploads/${req.file.filename}` : (image || ''),
       steps: steps || [],
       tags: tags || [],
@@ -68,6 +83,8 @@ export const updateRecipe = async (req, res) => {
     if (req.file) updates.image = `/uploads/${req.file.filename}`;
     if (updates.calories) updates.calories = Number(updates.calories);
     if (updates.protein) updates.protein = Number(updates.protein);
+    if (updates.carbs) updates.carbs = Number(updates.carbs);
+    if (updates.fats) updates.fats = Number(updates.fats);
     if (updates.ingredients && typeof updates.ingredients === 'string') {
       updates.ingredients = JSON.parse(updates.ingredients);
     }

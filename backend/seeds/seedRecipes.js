@@ -30,7 +30,7 @@ const recipeSchema = new mongoose.Schema({
 
 const Recipe = mongoose.models.Recipe || mongoose.model('Recipe', recipeSchema);
 
-const DATA_DIR = path.join(__dirname, '../../api_2/api_2/data');
+const DATA_DIR = path.join(__dirname, '../../api_2/data');
 
 const categoryFiles = [
   { file: 'breakfast',       category: 'breakfast'       },
@@ -89,6 +89,9 @@ async function seed() {
           description: r.description || '',
           calories: r.calories || 0,
           protein: r.protein || 0,
+          carbs: r.carbs || 0,
+          fats: r.fats || r.fat || 0,
+          servingSize: r.servingSize || '',
           image,
           emoji: r.emoji || '',
           steps: r.steps || [],

@@ -112,6 +112,53 @@
 
     /* Weight mini-chart */
     #weightCanvas { width: 100% !important; height: 80px !important; }
+
+    /* Subscription Status Card */
+    .sub-plan-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .sub-plan-badge.sub-free {
+      background: var(--neon-green-dim);
+      color: var(--neon-green);
+      border: 1px solid rgba(0,255,136,0.25);
+    }
+    .sub-plan-badge.sub-basic {
+      background: rgba(0,212,255,0.1);
+      color: var(--electric-cyan);
+      border: 1px solid rgba(0,212,255,0.3);
+    }
+    .sub-plan-badge.sub-pro {
+      background: linear-gradient(135deg, rgba(124,77,255,0.15), rgba(255,193,7,0.12));
+      color: #b388ff;
+      border: 1px solid rgba(124,77,255,0.3);
+    }
+
+    /* Streak Popup */
+    .streak-popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #111;
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 10px;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+      z-index: 9999;
+      box-shadow: var(--glass-shadow);
+      border: 1px solid var(--neon-green);
+    }
+    .streak-popup.show {
+      opacity: 1;
+      transform: scale(1);
+    }
   </style>
 </head>
 
@@ -239,10 +286,10 @@
           <div class="col-md-3">
             <div class="dash-card text-center">
               <h6 class="stat-label mb-2"><i class="bi bi-lightning-charge me-1" style="color:var(--soft-orange)"></i>Streak</h6>
-              <div class="stat-value mb-1" style="color:var(--soft-orange);" id="streakVal">0</div>
+              <h3 class="mb-1" style="color:var(--soft-orange); font-weight:900;">🔥 Streak: <span id="streakCount">0</span></h3>
               <div style="color:var(--text-muted); line-height: 1.2; min-height: 38px;" id="streakSubtitle">
                 <i class="bi bi-stars"></i><br>
-                <span style="font-size:0.75rem;">Loading...</span>
+                <span style="font-size:0.75rem;">Daily Login</span>
               </div>
               <hr style="border-color:var(--glass-border); margin:.8rem 0;">
               <h6 class="stat-label mb-2"><i class="bi bi-heart-pulse me-1" style="color:var(--neon-green)"></i>Health Score</h6>
@@ -297,6 +344,33 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Row 2.5: Subscription Status -->
+        <div class="row g-4 mb-4">
+          <div class="col-12">
+            <div class="dash-card" id="subscriptionCard">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div>
+                    <h6 class="stat-label mb-1"><i class="bi bi-gem me-1" style="color:var(--purple-accent)"></i>Meal Planner Subscription</h6>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="sub-plan-badge sub-free" id="dashPlanBadge">FREE TRIAL</span>
+                      <span style="color:var(--text-muted); font-size:0.82rem;" id="dashPlanUsage">1 free plan available</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <div id="dashPlanBar" style="width:80px; height:6px; border-radius:3px; background:var(--glass-border); overflow:hidden; display:none;">
+                    <div id="dashPlanFill" style="height:100%; border-radius:3px; background:linear-gradient(90deg,var(--neon-green),var(--electric-cyan)); width:0%; transition:width 0.5s;"></div>
+                  </div>
+                  <a href="Mealplanner.html" class="btn btn-sm px-3" id="dashUpgradeBtn" style="background:linear-gradient(135deg,#7c4dff,#651fff); color:white; border:none; border-radius:20px; font-weight:700; font-size:0.78rem;">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Upgrade
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Row 3: Today's Meals -->
@@ -455,9 +529,65 @@
           </div>
         </div>
 
+        <!-- ── Row 5: My Meal Plans ── -->
+        <div class="row g-4 mt-2">
+          <div class="col-12">
+            <div class="dash-card">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-journal-bookmark-fill me-2" style="color: var(--neon-green);"></i>My Saved Meal Plans</h6>
+                <a href="Mealplanner.html" class="btn btn-sm btn-neon px-3"><i class="bi bi-stars me-1"></i> Create New Plan</a>
+              </div>
+              <div id="mealPlansList">
+                <div class="text-center py-4" style="color: var(--text-muted);">
+                  <div class="spinner-border spinner-border-sm me-2" style="color: var(--neon-green);"></div>
+                  Loading your meal plans...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /dashContent -->
     </div>
   </main>
+
+  <!-- ── MEAL PLAN VIEW MODAL ── -->
+  <div class="modal fade" id="mealPlanViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold" id="viewPlanTitle" style="color: var(--text-primary);">Meal Plan</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="viewPlanBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RECIPE POPUP MODAL (Dashboard) ── -->
+  <div class="modal fade" id="dashRecipeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+      <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); overflow: hidden;">
+        <div class="modal-header border-0 pb-0">
+          <div>
+            <span id="dashRecipeEmoji" style="font-size: 2rem;"></span>
+            <h5 class="modal-title fw-bold d-inline ms-2" id="dashRecipeName" style="color: var(--text-primary);"></h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <div class="d-flex gap-3 mb-3 flex-wrap" id="dashRecipeMacros"></div>
+          <hr style="border-color: var(--glass-border); margin: 1rem 0;">
+          <a id="dashRecipeYouTube" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:600;font-size:0.9rem;margin-bottom:8px;background:rgba(255,0,0,0.1);color:#ff4444;border:1px solid rgba(255,0,0,0.2);">
+            <i class="bi bi-youtube"></i><span>Watch Recipe on YouTube</span><i class="bi bi-box-arrow-up-right ms-auto" style="font-size:0.8rem;"></i></a>
+          <a id="dashRecipeZomato" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:600;font-size:0.9rem;margin-bottom:8px;background:rgba(239,79,95,0.1);color:#ef4f5f;border:1px solid rgba(239,79,95,0.2);">
+            <span style="font-size:1.1rem;">🛵</span><span>Order on Zomato</span><i class="bi bi-box-arrow-up-right ms-auto" style="font-size:0.8rem;"></i></a>
+          <a id="dashRecipeSwiggy" href="#" target="_blank" style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:600;font-size:0.9rem;margin-bottom:8px;background:rgba(252,128,25,0.1);color:#fc8019;border:1px solid rgba(252,128,25,0.2);">
+            <span style="font-size:1.1rem;">🟠</span><span>Order on Swiggy</span><i class="bi bi-box-arrow-up-right ms-auto" style="font-size:0.8rem;"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── LOG MEAL MODAL ── -->
   <div class="modal fade" id="mealModal" tabindex="-1" aria-hidden="true">
@@ -646,6 +776,8 @@
       renderWeight();
       renderAchievements();
       renderMeals();
+      loadSavedMealPlans();
+      renderDashSubscription();
     }
 
     // ── Calories ───────────────────────────────────────────
@@ -725,50 +857,75 @@
       });
     }
 
+    function showPopup(message) {
+      const popup = document.createElement("div");
+      popup.className = "streak-popup";
+      popup.innerText = message;
+
+      document.body.appendChild(popup);
+
+      setTimeout(() => {
+          popup.classList.add("show");
+      }, 100);
+
+      setTimeout(() => {
+          popup.classList.remove("show");
+          setTimeout(() => popup.remove(), 500);
+      }, 2500);
+    }
+
     // ── Streak & Score ─────────────────────────────────────
     function renderStreakScore() {
-      const streak = dashData.currentStreak || 0;
-      const status = dashData.streakStatus || 'new_user';
-      
-      const streakValEl = document.getElementById('streakVal');
-      streakValEl.textContent = streak;
-      
-      // Dynamic messaging & heat icon
+      // --- Local Storage Streak Logic ---
+      const today = new Date().toISOString().split("T")[0];
+      const lastLogin = localStorage.getItem("lastLoginDate");
+      let streak = parseInt(localStorage.getItem("streakCount")) || 0;
+
+      if (!lastLogin) {
+          // First login ever
+          streak = 1;
+          localStorage.setItem("streakCount", streak);
+          showPopup("🔥 Streak 1 started!");
+      }
+      else {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+          if (lastLogin === yesterdayStr) {
+              // Continue streak
+              streak += 1;
+              localStorage.setItem("streakCount", streak);
+              showPopup("🔥 Streak " + streak + "!");
+          }
+          else if (lastLogin === today) {
+              // Already logged in today → do nothing
+          }
+          else {
+              // Missed a day → reset
+              streak = 1;
+              localStorage.setItem("streakCount", streak);
+              showPopup("❌ Streak lost! Starting again from 1");
+          }
+      }
+
+      localStorage.setItem("lastLoginDate", today);
+      document.getElementById("streakCount").innerText = streak;
+
+      // Icon & Message fallback logic for subtitle
       let msg = "";
       let icon = '<i class="bi bi-stars"></i>';
       
-      if (status === 'new_user') {
-          msg = "Ready to build habits? Let's start! ✨";
-          streakValEl.style.color = 'var(--text-muted)';
+      if (streak >= 7) {
+        msg = "You're on fire! 🔥🔥🔥";
+        icon = '<i class="bi bi-fire" style="color:#ff3300; filter: drop-shadow(0 0 8px #ff3300); font-size: 1.1rem;"></i>';
+      } else if (streak >= 3) {
+        msg = `Consistency is key! You got this.`; 
+        icon = '<i class="bi bi-fire" style="color:var(--soft-orange); font-size: 1rem;"></i>';
+      } else {
+        msg = `Keep it going!`;
+        icon = '<i class="bi bi-fire" style="color:var(--soft-orange); font-size: 0.9rem;"></i>';
       }
-      else if (status === 'broken') {
-          msg = "Today is a fresh start! 🌱";
-          streakValEl.style.color = 'var(--text-muted)';
-      }
-      else if (status === 'comeback') {
-          msg = "Welcome back! 💪";
-          streakValEl.style.color = 'var(--neon-green)';
-          icon = '<i class="bi bi-fire" style="color:var(--soft-orange);"></i>';
-      }
-      else if (status === 'first_day') {
-          msg = "Great start! 🚀";
-          streakValEl.style.color = 'var(--neon-green)';
-      }
-      else {
-          streakValEl.style.color = 'var(--soft-orange)'; // active fire color
-          if (streak >= 7) {
-            msg = "You're on fire! 🔥🔥🔥";
-            icon = '<i class="bi bi-fire" style="color:#ff3300; filter: drop-shadow(0 0 8px #ff3300); font-size: 1.1rem;"></i>';
-          } else if (streak >= 3) {
-            msg = `Consistency is key! You got this.`; 
-            icon = '<i class="bi bi-fire" style="color:var(--soft-orange); font-size: 1rem;"></i>';
-          } else {
-            msg = `Keep it going!`;
-            icon = '<i class="bi bi-fire" style="color:var(--soft-orange); font-size: 0.9rem;"></i>';
-          }
-      }
-      
-      if (streak === 0) icon = '<i class="bi bi-stars" style="color:var(--text-muted);"></i>';
 
       const streakSubtitle = document.getElementById('streakSubtitle');
       if (streakSubtitle) {
@@ -1124,6 +1281,161 @@
       document.getElementById('toastMsg').textContent = msg;
       el.style.display = 'block';
       setTimeout(() => { el.style.display = 'none'; }, 3500);
+    }
+
+    // ━━━ Dashboard Subscription Status ━━━
+    function renderDashSubscription() {
+      const plan = localStorage.getItem('goHealthy_plan') || 'free';
+      const limit = parseInt(localStorage.getItem('goHealthy_planLimit') || '0');
+      const trialUsed = localStorage.getItem('goHealthy_freeTrialUsed') === 'true';
+      const genCount = parseInt(localStorage.getItem('goHealthy_mealGenCount') || '0');
+
+      const badge = document.getElementById('dashPlanBadge');
+      const usage = document.getElementById('dashPlanUsage');
+      const bar = document.getElementById('dashPlanBar');
+      const fill = document.getElementById('dashPlanFill');
+      const upgradeBtn = document.getElementById('dashUpgradeBtn');
+
+      if (plan === 'free') {
+        badge.textContent = 'FREE TRIAL';
+        badge.className = 'sub-plan-badge sub-free';
+        bar.style.display = 'none';
+        usage.textContent = trialUsed ? 'Free trial used — Upgrade to continue' : '1 free plan available';
+        usage.style.color = trialUsed ? 'var(--soft-orange)' : 'var(--neon-green)';
+        upgradeBtn.style.display = '';
+      } else {
+        badge.textContent = plan === 'pro' ? 'PRO' : 'BASIC';
+        badge.className = 'sub-plan-badge ' + (plan === 'pro' ? 'sub-pro' : 'sub-basic');
+        usage.textContent = `${genCount} / ${limit} plans used today`;
+        usage.style.color = genCount >= limit ? '#ff5252' : 'var(--text-muted)';
+        bar.style.display = 'block';
+        fill.style.width = Math.min((genCount / limit) * 100, 100) + '%';
+        fill.style.background = genCount >= limit ? '#ff5252' : 'linear-gradient(90deg,var(--neon-green),var(--electric-cyan))';
+        upgradeBtn.textContent = plan === 'pro' ? '✨ Pro Active' : 'Upgrade to Pro';
+        if (plan === 'pro') {
+          upgradeBtn.style.background = 'var(--neon-green-dim)';
+          upgradeBtn.style.color = 'var(--neon-green)';
+          upgradeBtn.style.border = '1px solid rgba(0,255,136,0.3)';
+        }
+      }
+    }
+    // ── My Meal Plans ───────────────────────────────────
+    let mealPlanViewModal, dashRecipeModalObj;
+    document.addEventListener('DOMContentLoaded', () => {
+      const mpEl = document.getElementById('mealPlanViewModal');
+      const drEl = document.getElementById('dashRecipeModal');
+      if (mpEl) mealPlanViewModal = new bootstrap.Modal(mpEl);
+      if (drEl) dashRecipeModalObj = new bootstrap.Modal(drEl);
+    });
+
+    async function loadSavedMealPlans() {
+      const container = document.getElementById('mealPlansList');
+      try {
+        const res = await API.getMealPlanHistory();
+        const plans = res.data?.data || [];
+
+        if (!plans.length) {
+          container.innerHTML = `
+            <div class="text-center py-4" style="color: var(--text-muted);">
+              <i class="bi bi-journal-x" style="font-size: 2.5rem; opacity: 0.4;"></i>
+              <p class="mt-2 mb-1">No saved meal plans yet.</p>
+              <a href="Mealplanner.html" style="color: var(--neon-green);">Create your first AI meal plan →</a>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = plans.map(plan => {
+          const date = new Date(plan.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          const daysCount = plan.days?.length || 0;
+          const firstDay = plan.days?.[0];
+          const preview = firstDay?.meals?.slice(0, 3).map(m => `${m.emoji || '🍽️'} ${m.name}`).join('  ·  ') || 'No preview';
+          const goal = plan.preferences?.goal || '';
+          const diet = plan.preferences?.dietType || '';
+          const cal = plan.preferences?.calorieTarget || '';
+
+          return `
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 p-3 mb-2" style="background: var(--bg-primary); border: 1px solid var(--glass-border); border-radius: 12px;">
+              <div style="flex: 1;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <strong style="color: var(--text-primary);">${plan.name || 'Meal Plan'}</strong>
+                  <small class="px-2 py-0" style="background: var(--neon-green-dim); color: var(--neon-green); border-radius: 8px; font-size: 0.65rem; font-weight: 700;">${daysCount} DAYS</small>
+                  ${plan.isActive ? '<small class="px-2 py-0" style="background: rgba(124,77,255,0.15); color: #b388ff; border-radius: 8px; font-size: 0.65rem; font-weight: 700;">ACTIVE</small>' : ''}
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.8rem;">
+                  ${date}${goal ? ' · ' + goal : ''}${diet && diet !== 'any' ? ' · ' + diet : ''}${cal ? ' · ' + cal + ' kcal' : ''}
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px;">${preview}</div>
+              </div>
+              <div class="d-flex gap-2 flex-shrink-0">
+                <button class="btn btn-sm px-3" style="background: var(--neon-green-dim); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.2); border-radius: 8px; font-weight: 600;" onclick='viewPlanInModal(${JSON.stringify(plan).replace(/'/g, "&#39;")})'>View</button>
+                <button class="btn btn-sm px-3" style="background: rgba(255,82,82,0.1); color: #ff5252; border: 1px solid rgba(255,82,82,0.2); border-radius: 8px; font-weight: 600;" onclick="deleteSavedPlan('${plan._id}')">Delete</button>
+              </div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        console.error('[Dashboard] Meal plans load error:', e);
+        container.innerHTML = `<div class="text-center py-3" style="color: var(--text-muted);">Could not load meal plans.</div>`;
+      }
+    }
+
+    function viewPlanInModal(plan) {
+      document.getElementById('viewPlanTitle').textContent = plan.name || 'Meal Plan';
+      const body = document.getElementById('viewPlanBody');
+
+      body.innerHTML = (plan.days || []).map(dayObj => `
+        <div class="mb-4">
+          <h6 class="fw-bold mb-2" style="color: var(--neon-green);">${dayObj.day}</h6>
+          <div class="row g-2">
+            ${(dayObj.meals || []).map(meal => `
+              <div class="col-sm-6 col-md-3">
+                <div style="background: var(--bg-primary); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s;" 
+                     onmouseover="this.style.borderColor='rgba(0,255,136,0.3)'" onmouseout="this.style.borderColor='var(--glass-border)'"
+                     onclick='openDashRecipePopup(${JSON.stringify(meal).replace(/'/g, "&#39;")})'>
+                  <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px;">${meal.category || 'meal'}</div>
+                  <div style="color: var(--text-primary); font-size: 0.85rem; font-weight: 600;">${meal.emoji || '🍽️'} ${meal.name}</div>
+                  <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 2px;">~${meal.calories || 0} kcal · ${meal.protein || 0}g protein</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      mealPlanViewModal.show();
+    }
+
+    function openDashRecipePopup(meal) {
+      const nameEncoded = encodeURIComponent(meal.name);
+      document.getElementById('dashRecipeEmoji').textContent = meal.emoji || '🍽️';
+      document.getElementById('dashRecipeName').textContent = meal.name;
+      document.getElementById('dashRecipeMacros').innerHTML = `
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:0.75rem;font-weight:600;background:var(--bg-primary);border:1px solid var(--glass-border);color:var(--text-secondary);">🔥 ${meal.calories || 0} kcal</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:0.75rem;font-weight:600;background:var(--bg-primary);border:1px solid var(--glass-border);color:var(--neon-green);">💪 ${meal.protein || 0}g</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:0.75rem;font-weight:600;background:var(--bg-primary);border:1px solid var(--glass-border);color:var(--electric-cyan);">🌾 ${meal.carbs || 0}g</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:0.75rem;font-weight:600;background:var(--bg-primary);border:1px solid var(--glass-border);color:var(--soft-orange);">🧈 ${meal.fat || 0}g</span>
+      `;
+      document.getElementById('dashRecipeYouTube').href = `https://www.youtube.com/results?search_query=${nameEncoded}+healthy+recipe`;
+      document.getElementById('dashRecipeZomato').href = `https://www.zomato.com/search?q=${nameEncoded}`;
+      document.getElementById('dashRecipeSwiggy').href = `https://www.swiggy.com/search?query=${nameEncoded}`;
+
+      // Close the plan view modal first if open, then open recipe
+      mealPlanViewModal.hide();
+      setTimeout(() => dashRecipeModalObj.show(), 300);
+    }
+
+    async function deleteSavedPlan(planId) {
+      if (!confirm('Delete this meal plan?')) return;
+      try {
+        const res = await API.deleteMealPlan(planId);
+        if (res.ok) {
+          showToast('Meal plan deleted', 'info');
+          loadSavedMealPlans();
+        } else {
+          showToast('Failed to delete plan', 'error');
+        }
+      } catch (e) {
+        showToast('Error deleting plan', 'error');
+      }
     }
   </script>
 
