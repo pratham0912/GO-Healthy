@@ -6,9 +6,13 @@ const API = (() => {
     'use strict';
 
     // ─── Config ─────────────────────────────
-    // Dynamically pick the API base: use localhost in dev, same-origin /api in production
+    // For Vercel deployment, the frontend needs to know where the AWS backend is.
+    // Replace the IP below with your AWS EC2 Public IP address once launched.
+    const PROD_API_URL = 'http://<YOUR_AWS_EC2_PUBLIC_IP>:5000/api'; 
+
     const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    const BASE_URL = isLocal ? 'http://127.0.0.1:5000/api' : '/api';
+    const BASE_URL = isLocal ? 'http://127.0.0.1:5000/api' : PROD_API_URL;
+    
     const TOKEN_KEY = 'gohealthy_token';
     const USER_KEY = 'gohealthy_user';
 

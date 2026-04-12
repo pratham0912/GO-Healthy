@@ -1227,7 +1227,6 @@
             const isLoggedIn = localStorage.getItem("isLoggedIn") || localStorage.getItem("gohealthy_token") || API.isLoggedIn();
 
             if (!isLoggedIn) {
-                alert("Please login to use Meal Planner");
                 window.location.href = "sign_in.html";
                 return;
             }
@@ -1701,12 +1700,15 @@
            PREMIUM SUBSCRIPTION SYSTEM
            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+        const _currUser = API.getUser() || {};
+        const _uId = _currUser.id || _currUser._id || 'guest';
+
         const PLAN_KEYS = {
-            plan: 'goHealthy_plan',
-            limit: 'goHealthy_planLimit',
-            trialUsed: 'goHealthy_freeTrialUsed',
-            genCount: 'goHealthy_mealGenCount',
-            lastReset: 'goHealthy_lastResetDate',
+            plan: 'goHealthy_plan_' + _uId,
+            limit: 'goHealthy_planLimit_' + _uId,
+            trialUsed: 'goHealthy_freeTrialUsed_' + _uId,
+            genCount: 'goHealthy_mealGenCount_' + _uId,
+            lastReset: 'goHealthy_lastResetDate_' + _uId,
         };
 
         let selectedQRPlan = { name: 'basic', amount: 39, limit: 2 };

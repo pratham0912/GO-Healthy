@@ -22,10 +22,18 @@ const recipeSchema = new mongoose.Schema({
   ingredients: mongoose.Schema.Types.Mixed,
   calories: Number,
   protein: Number,
+  carbs: Number,
+  fats: Number,
+  servingSize: String,
   image: String,
   emoji: String,
   steps: [String],
   tags: [String],
+  isVeg: Boolean,
+  prepTime: String,
+  cookTime: String,
+  totalServings: Number,
+  healthTips: [String],
 }, { timestamps: true });
 
 const Recipe = mongoose.models.Recipe || mongoose.model('Recipe', recipeSchema);
@@ -96,6 +104,10 @@ async function seed() {
           emoji: r.emoji || '',
           steps: r.steps || [],
           tags: r.tags || [],
+          prepTime: r.prepTime || '',
+          cookTime: r.cookTime || '',
+          totalServings: r.totalServings || 2,
+          healthTips: r.healthTips || [],
           ingredients: Array.isArray(r.ingredients)
             ? r.ingredients.map(ing => {
                 if (typeof ing === 'string') {

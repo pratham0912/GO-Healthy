@@ -877,14 +877,19 @@
     // ── Streak & Score ─────────────────────────────────────
     function renderStreakScore() {
       // --- Local Storage Streak Logic ---
+      const _currUser = API.getUser() || {};
+      const _uId = _currUser.id || _currUser._id || 'guest';
+      const STREAK_KEY = "streakCount_" + _uId;
+      const LOGIN_KEY = "lastLoginDate_" + _uId;
+
       const today = new Date().toISOString().split("T")[0];
-      const lastLogin = localStorage.getItem("lastLoginDate");
-      let streak = parseInt(localStorage.getItem("streakCount")) || 0;
+      const lastLogin = localStorage.getItem(LOGIN_KEY);
+      let streak = parseInt(localStorage.getItem(STREAK_KEY)) || 0;
 
       if (!lastLogin) {
           // First login ever
           streak = 1;
-          localStorage.setItem("streakCount", streak);
+          localStorage.setItem(STREAK_KEY, streak);
           showPopup("🔥 Streak 1 started!");
       }
       else {
@@ -895,7 +900,7 @@
           if (lastLogin === yesterdayStr) {
               // Continue streak
               streak += 1;
-              localStorage.setItem("streakCount", streak);
+              localStorage.setItem(STREAK_KEY, streak);
               showPopup("🔥 Streak " + streak + "!");
           }
           else if (lastLogin === today) {
@@ -904,12 +909,12 @@
           else {
               // Missed a day → reset
               streak = 1;
-              localStorage.setItem("streakCount", streak);
+              localStorage.setItem(STREAK_KEY, streak);
               showPopup("❌ Streak lost! Starting again from 1");
-          }
+      }
       }
 
-      localStorage.setItem("lastLoginDate", today);
+      localStorage.setItem(LOGIN_KEY, today);
       document.getElementById("streakCount").innerText = streak;
 
       // Icon & Message fallback logic for subtitle

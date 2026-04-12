@@ -20,6 +20,10 @@ const recipeSchema = new mongoose.Schema({
   steps: { type: [String], default: [] },
   tags: { type: [String], default: [] },
   isVeg: { type: Boolean, default: true },
+  prepTime: { type: String, default: '' },
+  cookTime: { type: String, default: '' },
+  totalServings: { type: Number, default: 2 },
+  healthTips: { type: [String], default: [] },
 }, { timestamps: true });
 
 // Full-text search index

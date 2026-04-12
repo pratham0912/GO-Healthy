@@ -8,7 +8,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "seed": "node seeds/blogSeeds.js",
-    "seed:recipes": "node seeds/seedRecipes.js"
+    "seed:recipes": "node seeds/seedRecipes.js",
+    "seed:steps": "node seeds/addRecipeSteps.js"
   },
   "engines": {
     "node": ">=18.0.0"

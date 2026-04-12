@@ -217,6 +217,31 @@
                             style="max-height: 380px; width: 100%; object-fit: cover; border-radius: var(--radius-lg);">
                     </div>
 
+                    <!-- Quick Info Badges (Prep Time, Cook Time, Servings) -->
+                    <div class="d-flex flex-wrap justify-content-center gap-3 mb-4" id="quickInfoBar">
+                        <div class="recipe-quick-badge" id="badgePrepTime">
+                            <i class="bi bi-clock-history"></i>
+                            <div>
+                                <small>Prep Time</small>
+                                <strong id="modalPrepTime">—</strong>
+                            </div>
+                        </div>
+                        <div class="recipe-quick-badge" id="badgeCookTime">
+                            <i class="bi bi-fire"></i>
+                            <div>
+                                <small>Cook Time</small>
+                                <strong id="modalCookTime">—</strong>
+                            </div>
+                        </div>
+                        <div class="recipe-quick-badge" id="badgeServings">
+                            <i class="bi bi-people"></i>
+                            <div>
+                                <small>Servings</small>
+                                <strong id="modalServings">—</strong>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-4">
                         <!-- Ingredients -->
                         <div class="col-md-6">
@@ -257,22 +282,31 @@
                         </div>
                     </div>
 
-                    <!-- Instructions -->
+                    <!-- Step-by-Step Instructions -->
                     <div class="mt-4">
                         <h5 class="fw-bold mb-3" style="color: var(--neon-green);">
-                            <i class="bi bi-journal-text me-2"></i>Instructions
+                            <i class="bi bi-journal-text me-2"></i>Step-by-Step Instructions
                         </h5>
-                        <p id="modalInstructions"
-                            style="color: var(--text-secondary); white-space: pre-line; line-height: 1.8; font-size: 0.9rem;">
-                        </p>
+                        <div id="modalInstructions" class="recipe-steps-container"></div>
+                    </div>
+
+                    <!-- Health Tips / Variations -->
+                    <div class="mt-4" id="healthTipsSection" style="display: none;">
+                        <h5 class="fw-bold mb-3" style="color: var(--electric-cyan);">
+                            <i class="bi bi-heart-pulse me-2"></i>Health Tips & Variations
+                        </h5>
+                        <div id="modalHealthTips" class="health-tips-container"></div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="mt-4 pb-4">
+                        <p class="text-center mb-3" style="color: var(--text-muted); font-size: 0.8rem;">
+                            <i class="bi bi-info-circle me-1"></i>YouTube link is for visual reference only — full instructions are above
+                        </p>
                         <div class="d-flex flex-column gap-2" style="max-width: 400px; margin: 0 auto;">
                             <a id="modalYoutubeLink" href="#" target="_blank" class="recipe-link-btn youtube-link">
                                 <i class="bi bi-youtube"></i>
-                                <span>Watch Recipe on YouTube</span>
+                                <span>Watch on YouTube (Optional)</span>
                                 <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.8rem;"></i>
                             </a>
                             <a id="modalZomatoLink" href="#" target="_blank" class="recipe-link-btn zomato-link">
@@ -456,6 +490,143 @@
             border-right: 4px solid transparent;
             border-bottom: 7px solid #b5342c;
         }
+
+        /* ── Quick Info Badges (Prep / Cook / Servings) ── */
+        .recipe-quick-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border-radius: 14px;
+            background: var(--glass-bg, rgba(255,255,255,0.04));
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+            backdrop-filter: blur(12px);
+            min-width: 130px;
+            transition: all 0.3s ease;
+        }
+        .recipe-quick-badge:hover {
+            border-color: var(--neon-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,255,136,0.1);
+        }
+        .recipe-quick-badge i {
+            font-size: 1.4rem;
+            color: var(--neon-green);
+        }
+        .recipe-quick-badge small {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .recipe-quick-badge strong {
+            display: block;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-top: 1px;
+        }
+
+        /* ── Step-by-Step Instruction Cards ── */
+        .recipe-steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .recipe-step-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: var(--glass-bg, rgba(255,255,255,0.04));
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+            transition: all 0.3s ease;
+            animation: stepFadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+        .recipe-step-card:hover {
+            border-color: var(--neon-green);
+            background: rgba(0,255,136,0.03);
+            transform: translateX(4px);
+        }
+        .step-number {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-green), #00cc6a);
+            color: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(0,255,136,0.3);
+        }
+        .step-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            padding-top: 5px;
+        }
+        @keyframes stepFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Health Tips Cards ── */
+        .health-tips-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .health-tip-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(0, 224, 255, 0.04);
+            border: 1px solid rgba(0, 224, 255, 0.12);
+            transition: all 0.3s ease;
+        }
+        .health-tip-card:hover {
+            border-color: var(--electric-cyan);
+            transform: translateX(4px);
+        }
+        .health-tip-card i {
+            color: var(--electric-cyan);
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .health-tip-card span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* ── No-steps fallback ── */
+        .recipe-steps-fallback {
+            text-align: center;
+            padding: 24px;
+            border-radius: 14px;
+            background: var(--glass-bg, rgba(255,255,255,0.04));
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+        }
+        .recipe-steps-fallback i {
+            font-size: 2rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .recipe-steps-fallback p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0;
+        }
     </style>
 
     <!-- Scripts -->
@@ -631,6 +802,7 @@
         function buildParams(extra = {}) {
             const params = { ...extra };
             if (activeDiet === 'veg') params.isVeg = 'true';
+            if (activeDiet === 'nonveg') params.isVeg = 'false';
             return params;
         }
 
@@ -679,12 +851,10 @@
                 return;
             }
 
-            const cookTimes = ['10 min', '15 min', '20 min', '25 min', '30 min', '5 min'];
-
             recipes.forEach((recipe, i) => {
                 const card = document.createElement('div');
                 card.className = 'col';
-                const ct = cookTimes[i % cookTimes.length];
+                const ct = recipe.cookTime || recipe.prepTime || '15 min';
                 const cal = recipe.calories || calcNutrition(recipe.ingredients || []).cal;
                 const recipeId = recipe._id || recipe.id;
                 const imgSrc = resolveImage(recipe.image);
@@ -734,9 +904,45 @@
                 modalImage.src = resolveImage(recipe.image);
                 modalImage.onerror = () => { modalImage.src = 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400'; };
 
-                // Steps
-                const stepsHtml = (recipe.steps || []).map((s, i) => `${i + 1}. ${s}`).join('\n');
-                modalInstructions.innerText = stepsHtml || 'See YouTube for full cooking instructions.';
+                // ─── Quick Info Badges ───
+                document.getElementById('modalPrepTime').textContent = recipe.prepTime || '—';
+                document.getElementById('modalCookTime').textContent = recipe.cookTime || '—';
+                document.getElementById('modalServings').textContent = recipe.totalServings ? `${recipe.totalServings} servings` : '—';
+
+                // ─── Step-by-Step Instructions ───
+                const stepsContainer = document.getElementById('modalInstructions');
+                const steps = recipe.steps || [];
+                if (steps.length > 0) {
+                    stepsContainer.innerHTML = steps.map((step, i) => `
+                        <div class="recipe-step-card" style="animation-delay: ${i * 0.08}s;">
+                            <div class="step-number">${i + 1}</div>
+                            <div class="step-text">${step}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    stepsContainer.innerHTML = `
+                        <div class="recipe-steps-fallback">
+                            <i class="bi bi-journal-text"></i>
+                            <p>Detailed instructions coming soon. Check YouTube for a visual guide!</p>
+                        </div>`;
+                }
+
+                // ─── Health Tips ───
+                const healthTips = recipe.healthTips || [];
+                const healthTipsSection = document.getElementById('healthTipsSection');
+                const healthTipsContainer = document.getElementById('modalHealthTips');
+                if (healthTips.length > 0) {
+                    healthTipsSection.style.display = 'block';
+                    healthTipsContainer.innerHTML = healthTips.map(tip => `
+                        <div class="health-tip-card">
+                            <i class="bi bi-lightbulb"></i>
+                            <span>${tip}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    healthTipsSection.style.display = 'none';
+                    healthTipsContainer.innerHTML = '';
+                }
 
                 // Show image, not video embed
                 document.getElementById('videoSection').style.display = 'none';

@@ -8,6 +8,7 @@ export const getRecipes = async (req, res) => {
     const filter = {};
     if (category && category !== 'all') filter.category = category;
     if (isVeg === 'true') filter.isVeg = true;
+    if (isVeg === 'false') filter.isVeg = false;
     if (minCalories || maxCalories) {
       filter.calories = {};
       if (minCalories) filter.calories.$gte = Number(minCalories);
