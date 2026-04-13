@@ -6,9 +6,9 @@ const API = (() => {
     'use strict';
 
     // ─── Config ─────────────────────────────
-    // For Vercel deployment, the frontend needs to know where the AWS backend is.
-    // Replace the IP below with your AWS EC2 Public IP address once launched.
-    const PROD_API_URL = 'http://13.60.212.136:5000/api'; 
+    // Vercel rewrites /api/* to the AWS backend (see vercel.json).
+    // This avoids HTTPS→HTTP mixed-content blocking.
+    const PROD_API_URL = '/api';
 
     const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const BASE_URL = isLocal ? 'http://127.0.0.1:5000/api' : PROD_API_URL;
