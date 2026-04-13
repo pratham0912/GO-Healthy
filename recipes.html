@@ -652,7 +652,7 @@
         let activeCategory = 'breakfast';
         let activeDiet = 'all'; // 'all' | 'veg' | 'nonveg'
 
-        const BACKEND = 'http://localhost:5000';
+        const BACKEND = ['localhost','127.0.0.1'].includes(window.location.hostname) ? 'http://localhost:5000' : '';
 
         /* ——— Category Labels ——— */
         const categoryLabels = {
