@@ -1860,7 +1860,7 @@
 
                 // 2. Open Razorpay Checkout Widget
                 const options = {
-                    key: 'rzp_test_SbRfIRJNIcljCo', // User's Test Key ID
+                    key: orderData.keyId, // Provided by backend — never hardcode keys in frontend
                     amount: orderData.amount,
                     currency: orderData.currency,
                     name: 'GoHealthy',

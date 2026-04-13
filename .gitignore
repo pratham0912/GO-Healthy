@@ -4,7 +4,13 @@ backend/node_modules/
 
 # Environment files — NEVER commit these
 .env
+.env.*
 backend/.env
+backend/.env.*
+*.env
+*.env.bak
+*.env.local*
+*.env.local.bak
 
 # Keep backend/uploads tracked — images are seeded and served as static assets
 
@@ -25,3 +31,7 @@ Thumbs.db
 
 # Render
 .render/
+
+# Secret key exports — NEVER commit CSV key exports
+*.csv
+razorpay_test_api_keys*.csv

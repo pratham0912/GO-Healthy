@@ -35,7 +35,8 @@ export const createOrder = async (req, res) => {
             success: true,
             orderId: order.id,
             amount: order.amount,
-            currency: order.currency
+            currency: order.currency,
+            keyId: process.env.RAZORPAY_KEY_ID, // Safe to expose — this is the public key only
         });
 
     } catch (error) {
